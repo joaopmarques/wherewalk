@@ -11,8 +11,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // main.tsx decides when a new version takes over, so a reload never interrupts a Walk.
-      registerType: 'prompt',
+      // A new version takes over as soon as it installs. main.tsx decides when the page reloads.
+      registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
         name: 'Where2Walk',

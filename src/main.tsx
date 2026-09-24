@@ -5,12 +5,12 @@ import { App } from './App'
 import { loadActiveWalk } from './storage'
 import './styles.css'
 
-// Load a new version as soon as it is ready, except during a Walk. Then the new version
-// waits, and it takes over the next time the app opens.
-const updateSW = registerSW({
+// A new version takes over as soon as it installs. Reload to show it, except during a Walk:
+// then the new version shows the next time the app opens, so a reload never interrupts the Walk.
+registerSW({
   immediate: true,
-  onNeedRefresh: () => {
-    if (!loadActiveWalk()) updateSW(true)
+  onNeedReload: () => {
+    if (!loadActiveWalk()) window.location.reload()
   },
 })
 
