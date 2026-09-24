@@ -1,6 +1,8 @@
-# WhereWalk
+# Where2Walk
 
-WhereWalk plans a walk that starts and ends where you are. You give a Target as a time, a distance, or a step count. WhereWalk plans a Loop of that length, and you follow it on the map.
+Where2Walk plans a walk that starts and ends where you are. You give a Target as a time, a distance, or a step count. Where2Walk plans a Loop of that length, and you follow it on the map.
+
+Live at <https://where2walk.jpmarqu.es>.
 
 The domain words (Origin, Route, Loop, Target, Candidate, Progress) are defined in [CONTEXT.md](CONTEXT.md).
 
@@ -36,7 +38,11 @@ Browsers give GPS positions only on `https://` pages or on `localhost`. A phone 
 
 ## Deploy
 
-`npm run build` makes a static site in `dist/`. Any static host works, for example GitHub Pages or Cloudflare Pages. Set `VITE_ORS_KEY` in the host's build environment.
+The app runs on Vercel as the project `wherewalk`, in the personal `jpmarques` scope. The domain `where2walk.jpmarqu.es` has a CNAME record at GoDaddy that points to Vercel.
+
+To deploy a new version to production, run `npx vercel deploy --prod --scope jpmarques`.
+
+`VITE_ORS_KEY` is set in the Vercel project for Production and Preview. `npm run build` makes a plain static site in `dist/`, so any other static host also works.
 
 ## About the built-in key
 

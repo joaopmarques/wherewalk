@@ -10,7 +10,7 @@ export interface GeoState {
   error: 'denied' | 'unavailable' | null
 }
 
-/** Movement needed before WhereWalk computes a heading from two positions. */
+/** Movement needed before Where2Walk computes a heading from two positions. */
 const HEADING_MIN_MOVE_M = 8
 
 /**

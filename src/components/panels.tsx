@@ -64,7 +64,7 @@ export function SetupPanel(p: SetupProps) {
         p.onPlan()
       }}
     >
-      <Header title="WhereWalk" onSettings={p.onSettings} />
+      <Header title="Where2Walk" onSettings={p.onSettings} />
       <p className="label" id="target-label">
         How much do you want to walk?
       </p>

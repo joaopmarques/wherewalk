@@ -14,8 +14,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'WhereWalk',
-        short_name: 'WhereWalk',
+        name: 'Where2Walk',
+        short_name: 'Where2Walk',
         description: 'Plan a walk that starts and ends where you are.',
         theme_color: '#1f7a5a',
         background_color: '#ffffff',
