@@ -5,6 +5,16 @@ import type { LngLat } from '../domain/types'
 const ORS_URL = 'https://api.heigit.org/openrouteservice/v2/directions/foot-walking/geojson'
 /** More points make the Loop rounder, with less walking on the same street twice. */
 const LOOP_POINTS = 5
+/**
+ * OpenStreetMap maps ferry lines, and the walking profile uses them. Without this, a Route in
+ * Rotterdam can cross the Maas by ferry. Fords mean wading through water.
+ */
+export const AVOID_FEATURES = ['ferries', 'fords']
+/**
+ * ORS way category bit for motorways and trunk roads. The walking profile only penalizes these
+ * roads, so the adapter checks each route and drops any that uses one.
+ */
+const WAY_CATEGORY_MOTOR_ROAD = 1
 
 export type RouterErrorKind = 'no-key' | 'bad-key' | 'quota' | 'no-route' | 'network'
 
@@ -33,7 +43,7 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
       response = await fetch(url, {
         method: 'POST',
         headers: { Authorization: apiKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, instructions: false, elevation: false }),
+        body: JSON.stringify({ ...body, instructions: false, elevation: false, extra_info: ['waycategory'] }),
       })
     } catch {
       if (!navigator.onLine) throw new RouterError('network', 'You are offline. Connect to the internet and try again.')
@@ -58,6 +68,11 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
     if (!coordinates || coordinates.length < 2 || lengthM === undefined) {
       throw new RouterError('no-route', 'No walking route found from here.')
     }
+    // Each value is [first point, last point, category bits] for one part of the route.
+    const categories: [number, number, number][] = feature?.properties?.extras?.waycategory?.values ?? []
+    if (categories.some(([, , bits]) => bits & WAY_CATEGORY_MOTOR_ROAD)) {
+      throw new RouterError('no-route', 'No walking route found from here.')
+    }
     return { coordinates, lengthM }
   }
 
@@ -65,11 +80,15 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
     loop: async (origin, lengthM, seed) => {
       const route = await request({
         coordinates: [origin],
-        options: { round_trip: { length: Math.round(lengthM), points: LOOP_POINTS, seed } },
+        options: {
+          round_trip: { length: Math.round(lengthM), points: LOOP_POINTS, seed },
+          avoid_features: AVOID_FEATURES,
+        },
       })
       return { shape: 'loop', ...route }
     },
     // The far point of an Out-and-back can land in a park or a lake, so let it snap to any street.
-    path: (from, to) => request({ coordinates: [from, to], radiuses: [1000, -1] }),
+    path: (from, to) =>
+      request({ coordinates: [from, to], radiuses: [1000, -1], options: { avoid_features: AVOID_FEATURES } }),
   }
 }
