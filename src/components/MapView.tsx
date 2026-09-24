@@ -10,6 +10,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { LngLat } from '../domain/types'
 
@@ -268,6 +269,7 @@ export function MapView(props: Props) {
       <div ref={container} className="map" />
       {props.follow && userMoved && (
         <button type="button" className="recenter" onClick={() => setUserMoved(false)}>
+          <LocateFixed size={18} strokeWidth={2.5} aria-hidden="true" />
           Recenter
         </button>
       )}

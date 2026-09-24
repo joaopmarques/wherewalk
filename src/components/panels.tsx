@@ -1,34 +1,77 @@
-import { useEffect, useState, type CSSProperties } from 'react'
+import {
+  ArrowLeft,
+  Check,
+  Clock,
+  Flag,
+  Footprints,
+  LocateFixed,
+  OctagonAlert,
+  Play,
+  RefreshCw,
+  Route as RouteIcon,
+  Ruler,
+  Settings,
+  Square,
+  TriangleAlert,
+  type LucideIcon,
+} from 'lucide-react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import type { PlanResult } from '../domain/planner'
 import { metersToTargetUnit } from '../domain/target'
 import type { Route, TargetKind, Units, WalkerSettings } from '../domain/types'
 import type { ActiveWalk } from '../storage'
 import { distanceUnit, formatDistance, formatDistanceNumber, formatMinutes, formatSteps } from '../units'
+import { RouteShield } from './RouteShield'
 
-const KIND_LABELS: Record<TargetKind, string> = { time: 'Time', distance: 'Distance', steps: 'Steps' }
+const KINDS: { kind: TargetKind; label: string; icon: LucideIcon }[] = [
+  { kind: 'time', label: 'Time', icon: Clock },
+  { kind: 'distance', label: 'Distance', icon: Ruler },
+  { kind: 'steps', label: 'Steps', icon: Footprints },
+]
 
 export type OriginStatus = 'locating' | 'gps' | 'pin' | 'pin-no-location' | 'no-location'
 
-function Header({ title, onSettings }: { title: string; onSettings?: () => void }) {
+const routeMinutes = (lengthM: number, settings: WalkerSettings) => metersToTargetUnit(lengthM, 'time', settings)
+
+const clockTime = (date: Date) => date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+
+// ─── Shared sign parts ───────────────────────────────────────────────────────
+
+function SettingsButton({ onClick }: { onClick: () => void }) {
   return (
-    <div className="panel-header">
-      <h1>{title}</h1>
-      {onSettings && (
-        <button type="button" className="icon-button" onClick={onSettings} aria-label="Settings">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
-            />
-          </svg>
-        </button>
-      )}
-    </div>
+    <button type="button" className="icon-button" onClick={onClick} aria-label="Settings">
+      <Settings size={20} strokeWidth={2.25} aria-hidden="true" />
+    </button>
   )
 }
 
-const routeTime = (lengthM: number, settings: WalkerSettings) =>
-  formatMinutes(metersToTargetUnit(lengthM, 'time', settings))
+/** A big value with a smaller unit, like "0.5 miles" on a guide sign. */
+function BigValue({ value, unit }: { value: string; unit: string }) {
+  return (
+    <p className="big-value">
+      <span className="big-number">{value}</span> <span className="big-unit">{unit}</span>
+    </p>
+  )
+}
+
+/** A yellow warning plaque, like the ones under a guide sign. */
+function WarningPlaque({ children }: { children: ReactNode }) {
+  return (
+    <p className="plaque plaque-warning">
+      <TriangleAlert size={18} strokeWidth={2.5} aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  )
+}
+
+function ErrorPlaque({ children }: { children: ReactNode }) {
+  return (
+    <p className="plaque plaque-error" role="alert">
+      <OctagonAlert size={18} strokeWidth={2.5} aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  )
+}
 
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
@@ -64,24 +107,31 @@ export function SetupPanel(p: SetupProps) {
         p.onPlan()
       }}
     >
-      <Header title="Where2Walk" onSettings={p.onSettings} />
-      <p className="label" id="target-label">
+      <div className="sign-header">
+        <RouteShield />
+        <h1 className="brand">Where2Walk</h1>
+        <SettingsButton onClick={p.onSettings} />
+      </div>
+
+      <p className="caption" id="target-label">
         How much do you want to walk?
       </p>
       <div className="segmented" role="radiogroup" aria-labelledby="target-label">
-        {(Object.keys(KIND_LABELS) as TargetKind[]).map((k) => (
+        {KINDS.map(({ kind, label, icon: Icon }) => (
           <button
-            key={k}
+            key={kind}
             type="button"
             role="radio"
-            aria-checked={p.kind === k}
-            className={p.kind === k ? 'is-active' : ''}
-            onClick={() => p.onKind(k)}
+            aria-checked={p.kind === kind}
+            className={p.kind === kind ? 'is-active' : ''}
+            onClick={() => p.onKind(kind)}
           >
-            {KIND_LABELS[k]}
+            <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
+            {label}
           </button>
         ))}
       </div>
+
       <label className="target-input">
         <input
           type="number"
@@ -97,28 +147,33 @@ export function SetupPanel(p: SetupProps) {
       {p.kind !== 'distance' && p.targetM !== null && (
         <p className="hint">About {formatDistance(p.targetM, p.units)}</p>
       )}
+
       <p className="hint origin-hint">
         {originText}
         {p.originStatus === 'pin' && (
-          <>
-            {' '}
-            <button type="button" className="link" onClick={p.onUseMyLocation}>
-              Use my location
-            </button>
-          </>
+          <button type="button" className="link" onClick={p.onUseMyLocation}>
+            <LocateFixed size={14} strokeWidth={2.5} aria-hidden="true" />
+            Use my location
+          </button>
         )}
       </p>
-      {p.error && (
-        <p className="error" role="alert">
-          {p.error}
-        </p>
-      )}
+
+      {p.error && <ErrorPlaque>{p.error}</ErrorPlaque>}
+
       <button
         type="submit"
-        className="primary"
+        className="btn-exit"
         disabled={p.planning || p.targetM === null || p.originStatus === 'locating' || p.originStatus === 'no-location'}
       >
-        {p.planning ? 'Finding routes…' : 'Plan route'}
+        {p.planning ? (
+          <>
+            <span className="spinner" aria-hidden="true" /> Finding routes…
+          </>
+        ) : (
+          <>
+            <RouteIcon size={20} strokeWidth={2.5} aria-hidden="true" /> Plan route
+          </>
+        )}
       </button>
     </form>
   )
@@ -145,16 +200,24 @@ interface ResultsProps {
 
 export function ResultsPanel(p: ResultsProps) {
   const route = p.routes[p.selected]
-  const color = p.colors[p.selected]
+  const shape = route.shape === 'loop' ? 'Loop' : 'Out and back'
   return (
     <div>
-      <Header title={`${formatDistance(route.lengthM, p.units)} · ${routeTime(route.lengthM, p.settings)}`} onSettings={p.onSettings} />
+      <div className="sign-header">
+        <span className="route-swatch" style={{ '--candidate': p.colors[p.selected] } as CSSProperties} aria-hidden="true" />
+        <BigValue value={formatDistanceNumber(route.lengthM, p.units)} unit={distanceUnit(p.units)} />
+        <SettingsButton onClick={p.onSettings} />
+      </div>
+      <p className="caption">
+        About {formatMinutes(routeMinutes(route.lengthM, p.settings))} · {shape}
+      </p>
+
       {p.result.kind === 'closest' ? (
-        <p className="notice">
+        <WarningPlaque>
           No route within 10% of your Target ({formatDistance(p.targetM, p.units)}). This is the closest one found.
-        </p>
+        </WarningPlaque>
       ) : route.shape === 'out-and-back' ? (
-        <p className="notice">No loop found here. This route goes out and comes back on the same streets.</p>
+        <WarningPlaque>No loop found here. This route goes out and comes back on the same streets.</WarningPlaque>
       ) : null}
 
       {p.routes.length > 1 && (
@@ -177,20 +240,21 @@ export function ResultsPanel(p: ResultsProps) {
           </div>
           <label className="toggle">
             <input type="checkbox" checked={p.showAll} onChange={(e) => p.onShowAll(e.target.checked)} />
+            <span className="toggle-track" aria-hidden="true" />
             Show all routes
           </label>
         </>
       )}
 
-      <button type="button" className="primary" style={{ background: color }} onClick={p.onStart}>
-        Start walk
+      <button type="button" className="btn-exit" onClick={p.onStart}>
+        <Play size={18} strokeWidth={2.75} fill="currentColor" aria-hidden="true" /> Start walk
       </button>
       <div className="row">
-        <button type="button" className="secondary" onClick={p.onReplan}>
-          New routes
+        <button type="button" className="btn-outline" onClick={p.onReplan}>
+          <RefreshCw size={16} strokeWidth={2.5} aria-hidden="true" /> New routes
         </button>
-        <button type="button" className="secondary" onClick={p.onBack}>
-          Change target
+        <button type="button" className="btn-outline" onClick={p.onBack}>
+          <ArrowLeft size={16} strokeWidth={2.5} aria-hidden="true" /> Change target
         </button>
       </div>
     </div>
@@ -199,7 +263,7 @@ export function ResultsPanel(p: ResultsProps) {
 
 // ─── Walk ────────────────────────────────────────────────────────────────────
 
-/** Re-renders every 15 seconds, so elapsed time stays current. */
+/** Re-renders every 15 seconds, so elapsed time and return time stay current. */
 function useNow() {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
@@ -209,22 +273,16 @@ function useNow() {
   return now
 }
 
-/** Progress in the unit of the Target: steps, minutes, or distance. */
-function progressLines(walk: ActiveWalk, units: Units, settings: WalkerSettings) {
-  const { progressM } = walk
-  const lengthM = walk.route.lengthM
-  const leftM = Math.max(0, lengthM - progressM)
-  const distanceLine = `${formatDistanceNumber(progressM, units)} of ${formatDistance(lengthM, units)}`
+/** What is left, in the unit of the Target: steps, minutes, or distance. */
+function leftInTargetUnit(walk: ActiveWalk, units: Units, settings: WalkerSettings) {
+  const leftM = Math.max(0, walk.route.lengthM - walk.progressM)
   switch (walk.target.kind) {
     case 'steps':
-      return {
-        main: `${formatSteps(metersToTargetUnit(progressM, 'steps', settings))} of ${formatSteps(metersToTargetUnit(lengthM, 'steps', settings))} steps`,
-        detail: distanceLine,
-      }
+      return { value: formatSteps(metersToTargetUnit(leftM, 'steps', settings)), unit: 'steps left' }
     case 'time':
-      return { main: `${routeTime(leftM, settings)} left`, detail: distanceLine }
+      return { value: String(Math.max(0, Math.round(routeMinutes(leftM, settings)))), unit: 'min left' }
     case 'distance':
-      return { main: distanceLine, detail: `About ${routeTime(leftM, settings)} left` }
+      return { value: formatDistanceNumber(leftM, units), unit: `${distanceUnit(units)} left` }
   }
 }
 
@@ -239,27 +297,39 @@ interface WalkProps {
 export function WalkPanel({ walk, units, settings, hasPosition, onEnd }: WalkProps) {
   const now = useNow()
   const fraction = Math.min(1, walk.progressM / walk.route.lengthM)
-  const { main, detail } = progressLines(walk, units, settings)
+  const { value, unit } = leftInTargetUnit(walk, units, settings)
+  const leftMinutes = routeMinutes(Math.max(0, walk.route.lengthM - walk.progressM), settings)
+  const done =
+    walk.target.kind === 'steps'
+      ? `${formatSteps(metersToTargetUnit(walk.progressM, 'steps', settings))} of ${formatSteps(metersToTargetUnit(walk.route.lengthM, 'steps', settings))} steps`
+      : `${formatDistanceNumber(walk.progressM, units)} of ${formatDistance(walk.route.lengthM, units)}`
+
   return (
     <div>
-      <p className="progress-main" aria-live="polite">
-        {main}
-      </p>
+      <div className="walk-sign">
+        <Footprints className="walk-icon" size={44} strokeWidth={2.25} aria-hidden="true" />
+        <div aria-live="polite">
+          <BigValue value={value} unit={unit} />
+          <p className="caption">Back around {clockTime(new Date(now + leftMinutes * 60_000))}</p>
+        </div>
+      </div>
       <div
         className="progress-bar"
         role="progressbar"
+        aria-label="Walk progress"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(fraction * 100)}
+        style={{ '--candidate': walk.color } as CSSProperties}
       >
-        <div style={{ width: `${fraction * 100}%`, background: walk.color }} />
+        <div style={{ transform: `scaleX(${fraction})` }} />
       </div>
       <p className="hint">
-        {detail} · {formatMinutes((now - walk.startedAt) / 60_000)} walked
+        {done} · {formatMinutes((now - walk.startedAt) / 60_000)} walked
       </p>
       {!hasPosition && <p className="hint">Waiting for your location…</p>}
-      <button type="button" className="secondary" onClick={onEnd}>
-        End walk
+      <button type="button" className="btn-outline" onClick={onEnd}>
+        <Square size={14} strokeWidth={3} fill="currentColor" aria-hidden="true" /> End walk
       </button>
     </div>
   )
@@ -277,12 +347,16 @@ interface FinishedProps {
 export function FinishedPanel({ walk, endedAt, units, onDone }: FinishedProps) {
   return (
     <div>
-      <Header title="Walk finished" />
-      <p className="progress-main">
-        {formatDistance(walk.route.lengthM, units)} in {formatMinutes((endedAt - walk.startedAt) / 60_000)}
-      </p>
-      <button type="button" className="primary" onClick={onDone}>
-        Done
+      <div className="walk-sign">
+        <Flag className="walk-icon" size={44} strokeWidth={2.25} aria-hidden="true" />
+        <div>
+          <p className="caption">Walk finished</p>
+          <BigValue value={formatDistanceNumber(walk.route.lengthM, units)} unit={distanceUnit(units)} />
+          <p className="caption">In {formatMinutes((endedAt - walk.startedAt) / 60_000)}</p>
+        </div>
+      </div>
+      <button type="button" className="btn-exit" onClick={onDone}>
+        <Check size={20} strokeWidth={3} aria-hidden="true" /> Done
       </button>
     </div>
   )
@@ -298,14 +372,19 @@ interface ResumeProps {
 export function ResumePanel({ walk, units, onResume, onDiscard }: ResumeProps) {
   return (
     <div>
-      <Header title="Resume your walk?" />
-      <p className="hint">
-        {formatDistanceNumber(walk.progressM, units)} of {formatDistance(walk.route.lengthM, units)} done.
-      </p>
-      <button type="button" className="primary" style={{ background: walk.color }} onClick={onResume}>
-        Resume walk
+      <div className="walk-sign">
+        <Footprints className="walk-icon" size={44} strokeWidth={2.25} aria-hidden="true" />
+        <div>
+          <h1 className="title">Resume your walk?</h1>
+          <p className="caption">
+            {formatDistanceNumber(walk.progressM, units)} of {formatDistance(walk.route.lengthM, units)} done
+          </p>
+        </div>
+      </div>
+      <button type="button" className="btn-exit" onClick={onResume}>
+        <Play size={18} strokeWidth={2.75} fill="currentColor" aria-hidden="true" /> Resume walk
       </button>
-      <button type="button" className="secondary" onClick={onDiscard}>
+      <button type="button" className="btn-outline" onClick={onDiscard}>
         Discard
       </button>
     </div>

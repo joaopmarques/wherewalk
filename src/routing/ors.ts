@@ -36,18 +36,22 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
       })
     } catch {
       if (!navigator.onLine) throw new RouterError('network', 'You are offline. Connect to the internet and try again.')
-      // ORS sends its rate-limit response without CORS headers, so the browser reports it as a
-      // network failure. When the device is online, the per-minute limit is the likely cause.
+      // ORS sends its quota and bad-key responses without CORS headers, so the browser reports
+      // all of them as a network failure. The app cannot tell which one it was.
       throw new RouterError(
         'quota',
-        'The routing service did not answer. The per-minute limit may be used up. Wait a minute and try again.',
+        'The routing service refused the request. The shared quota may be used up, or the key may be wrong. Wait a minute and try again. If it still fails, add your own ORS key in settings.',
       )
     }
     if (response.status === 401 || response.status === 403) {
+      const body = await response.text()
+      if (/quota/i.test(body)) {
+        throw new RouterError('quota', 'The daily routing quota is used up. Try again tomorrow, or add your own ORS key in settings.')
+      }
       throw new RouterError('bad-key', 'The ORS key is not valid. Check it in settings.')
     }
     if (response.status === 429) {
-      throw new RouterError('quota', 'The routing quota is used up. Try again later, or add your own ORS key.')
+      throw new RouterError('quota', 'The routing quota is used up. Wait a minute and try again, or add your own ORS key in settings.')
     }
     if (!response.ok) throw new RouterError('no-route', 'No walking route found from here.')
 

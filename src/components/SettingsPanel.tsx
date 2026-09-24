@@ -1,3 +1,4 @@
+import { Check, RotateCcw, Settings } from 'lucide-react'
 import { useState } from 'react'
 import type { UnitPreference, Units, WalkerSettings } from '../domain/types'
 import { DEFAULT_SETTINGS } from '../storage'
@@ -39,8 +40,9 @@ export function SettingsPanel({ settings, units, hasBuiltInKey, onChange, onClos
 
   return (
     <div>
-      <div className="panel-header">
-        <h1>Settings</h1>
+      <div className="sign-header">
+        <Settings className="header-icon" size={28} strokeWidth={2.25} aria-hidden="true" />
+        <h1 className="title">Settings</h1>
       </div>
       <label className="field">
         <span>Units</span>
@@ -53,15 +55,18 @@ export function SettingsPanel({ settings, units, hasBuiltInKey, onChange, onClos
           <option value="imperial">Miles</option>
         </select>
       </label>
-      <label className="field">
-        <span>Pace ({imperial ? 'mph' : 'km/h'})</span>
-        <input type="number" inputMode="decimal" min="0" step="any" value={pace} onChange={(e) => updatePace(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Stride ({imperial ? 'in' : 'cm'})</span>
-        <input type="number" inputMode="decimal" min="0" step="any" value={stride} onChange={(e) => updateStride(e.target.value)} />
-      </label>
+      <div className="row">
+        <label className="field">
+          <span>Pace ({imperial ? 'mph' : 'km/h'})</span>
+          <input type="number" inputMode="decimal" min="0" step="any" value={pace} onChange={(e) => updatePace(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>Stride ({imperial ? 'in' : 'cm'})</span>
+          <input type="number" inputMode="decimal" min="0" step="any" value={stride} onChange={(e) => updateStride(e.target.value)} />
+        </label>
+      </div>
       <button type="button" className="link" onClick={reset}>
+        <RotateCcw size={14} strokeWidth={2.5} aria-hidden="true" />
         Reset pace and stride
       </button>
       <label className="field">
@@ -82,8 +87,8 @@ export function SettingsPanel({ settings, units, hasBuiltInKey, onChange, onClos
         </a>
         . The key stays on this device.
       </p>
-      <button type="button" className="primary" onClick={onClose}>
-        Done
+      <button type="button" className="btn-exit" onClick={onClose}>
+        <Check size={20} strokeWidth={3} aria-hidden="true" /> Done
       </button>
     </div>
   )

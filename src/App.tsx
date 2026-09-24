@@ -258,7 +258,10 @@ export function App() {
         fitKey={fitKey}
       />
       <section className="control-box" aria-label="Controls">
-        {panel}
+        {/* A new key per screen replays the entrance animation when the sign changes. */}
+        <div key={showSettings ? 'settings' : phase.name} className="sign-content">
+          {panel}
+        </div>
       </section>
     </div>
   )

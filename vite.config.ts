@@ -18,7 +18,7 @@ export default defineConfig({
         name: 'Where2Walk',
         short_name: 'Where2Walk',
         description: 'Plan a walk that starts and ends where you are.',
-        theme_color: '#1f7a5a',
+        theme_color: '#17773f',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
