@@ -90,6 +90,9 @@ export function SettingsPanel({ settings, units, hasBuiltInKey, onChange, onClos
       <button type="button" className="btn-exit" onClick={onClose}>
         <Check size={20} strokeWidth={3} aria-hidden="true" /> Done
       </button>
+      <a className="credit" href="https://jpmarqu.es" target="_blank" rel="noreferrer">
+        made with ❤️ by jpmarqu.es
+      </a>
     </div>
   )
 }

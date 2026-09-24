@@ -1,7 +1,8 @@
 import type { Router } from '../domain/planner'
 import type { LngLat } from '../domain/types'
 
-const ORS_URL = 'https://api.openrouteservice.org/v2/directions/foot-walking/geojson'
+// api.openrouteservice.org is deprecated and runs with a restricted quota. HeiGIT serves ORS here now.
+const ORS_URL = 'https://api.heigit.org/openrouteservice/v2/directions/foot-walking/geojson'
 /** More points make the Loop rounder, with less walking on the same street twice. */
 const LOOP_POINTS = 5
 
@@ -36,12 +37,7 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
       })
     } catch {
       if (!navigator.onLine) throw new RouterError('network', 'You are offline. Connect to the internet and try again.')
-      // ORS sends its quota and bad-key responses without CORS headers, so the browser reports
-      // all of them as a network failure. The app cannot tell which one it was.
-      throw new RouterError(
-        'quota',
-        'The routing service refused the request. The shared quota may be used up, or the key may be wrong. Wait a minute and try again. If it still fails, add your own ORS key in settings.',
-      )
+      throw new RouterError('network', 'Cannot reach the routing service. Wait a minute and try again.')
     }
     if (response.status === 401 || response.status === 403) {
       const body = await response.text()

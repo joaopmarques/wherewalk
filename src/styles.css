@@ -19,7 +19,8 @@
   --error-top: #e53935;
   --error-bottom: #b71c1c;
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
-  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  /* For things that move on screen after a tap: a quick start, so it answers at once, and a long settle. */
+  --ease-move: cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Overpass', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: var(--sign-ink);
   -webkit-font-smoothing: antialiased;
@@ -43,12 +44,15 @@ body { background: #f2efe9; overscroll-behavior: none; }
   left: 12px;
   right: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom));
-  max-height: 62vh;
+  /* Leave room for the map credits at the top. Content scrolls only on very short screens. */
+  max-height: calc(100vh - 72px);
+  max-height: calc(100dvh - 72px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
-  padding: 22px 22px 20px;
+  /* The bottom padding keeps the last line clear of the white inner border. */
+  padding: 22px 22px 26px;
   border-radius: 16px;
   color: var(--reflective);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
@@ -67,6 +71,11 @@ body { background: #f2efe9; overscroll-behavior: none; }
     inset 0 -2px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* useAnimatedHeight sets the height. The class keeps the first height from animating. */
+/* The same duration as the content fade, so the sign and its content move as one. */
+.control-box.is-sized { transition: height 220ms var(--ease-move); }
+.control-box.is-resizing { overflow-y: hidden; }
+
 @media (min-width: 720px) {
   .control-box { left: 20px; top: 20px; right: auto; bottom: auto; width: 372px; max-height: calc(100vh - 40px); }
 }
@@ -75,7 +84,7 @@ body { background: #f2efe9; overscroll-behavior: none; }
 .sign-content, .sign-content > * { display: flex; flex-direction: column; gap: 14px; }
 
 @keyframes sign-in {
-  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  from { opacity: 0; transform: translateY(4px); }
 }
 
 .sign-header { display: flex; align-items: center; gap: 12px; }
@@ -129,6 +138,7 @@ button:disabled { cursor: not-allowed; }
 .icon-button:active { transform: scale(0.94); }
 
 .segmented {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
@@ -149,13 +159,33 @@ button:disabled { cursor: not-allowed; }
   color: rgba(255, 255, 255, 0.86);
   font-size: 15px;
   font-weight: 700;
-  transition: background-color 150ms ease, color 150ms ease;
+  /* The label color changes with the pill, so both use the pill timing. */
+  transition: background-color 150ms ease, color 200ms var(--ease-move);
 }
-.segmented button.is-active {
+/*
+ * Overpass has a deep descender area, so its capitals sit about 2px above the middle of
+ * the line box. Trim the box to the capitals where the browser supports it, else shift down.
+ */
+.segmented-label { position: relative; top: 0.12em; }
+@supports (text-box: trim-both cap alphabetic) {
+  .segmented-label { top: 0; text-box: trim-both cap alphabetic; }
+}
+.segmented button { position: relative; }
+.segmented button.is-active { color: var(--sign-bottom); text-shadow: none; }
+
+/* One pill slides under the options. Each step is one pill width plus the 4px gap. */
+.segmented-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 16px) / 3);
+  border-radius: 9px;
   background: linear-gradient(180deg, #ffffff, #eaf1ec);
-  color: var(--sign-bottom);
-  text-shadow: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  transform: translateX(calc(var(--index) * (100% + 4px)));
+  transition: transform 200ms var(--ease-move);
+  will-change: transform;
 }
 
 .target-input {
@@ -269,6 +299,20 @@ button:disabled { cursor: not-allowed; }
 .row { display: flex; gap: 10px; }
 .row > * { flex: 1; min-width: 0; }
 
+.credit {
+  align-self: center;
+  margin-top: -4px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--reflective);
+  font-size: 12px;
+  line-height: 1.3;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-shadow: none;
+}
+
 /* ─── Plaques ───────────────────────────────────────────────────────────── */
 
 .plaque {
@@ -334,7 +378,7 @@ button:disabled { cursor: not-allowed; }
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.3);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.85);
-  transition: background-color 180ms ease;
+  transition: background-color 160ms ease;
 }
 .toggle-track::after {
   content: '';
@@ -346,7 +390,7 @@ button:disabled { cursor: not-allowed; }
   border-radius: 50%;
   background: var(--reflective);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  transition: transform 180ms var(--ease-in-out-cubic);
+  transition: transform 160ms var(--ease-move);
 }
 .toggle input:checked + .toggle-track { background: var(--exit-mid); }
 .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
@@ -369,7 +413,7 @@ button:disabled { cursor: not-allowed; }
   height: 100%;
   transform-origin: left;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0)), var(--candidate);
-  transition: transform 400ms var(--ease-out-quart);
+  transition: transform 300ms var(--ease-out-quart);
 }
 
 .spinner {
@@ -444,4 +488,14 @@ button:disabled { cursor: not-allowed; }
   .spinner { animation: none; }
   .toggle-track, .toggle-track::after { transition: none; }
   .candidate, .btn-exit, .btn-outline, .icon-button, .segmented button, .target-input { transition: none; }
+  .segmented-pill, .control-box.is-sized { transition: none; }
+}
+
+/* Short phones, such as an iPhone SE: tighten the sign so it fits without scrolling. */
+@media (max-height: 720px) {
+  .control-box { padding-top: 18px; padding-bottom: 22px; }
+  .sign-content, .sign-content > * { gap: 11px; }
+  .brand { font-size: 24px; }
+  .target-input input { font-size: 44px; }
+  .btn-exit { min-height: 50px; }
 }

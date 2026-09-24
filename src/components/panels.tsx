@@ -117,6 +117,11 @@ export function SetupPanel(p: SetupProps) {
         How much do you want to walk?
       </p>
       <div className="segmented" role="radiogroup" aria-labelledby="target-label">
+        <span
+          className="segmented-pill"
+          style={{ '--index': KINDS.findIndex((k) => k.kind === p.kind) } as CSSProperties}
+          aria-hidden="true"
+        />
         {KINDS.map(({ kind, label, icon: Icon }) => (
           <button
             key={kind}
@@ -127,7 +132,7 @@ export function SetupPanel(p: SetupProps) {
             onClick={() => p.onKind(kind)}
           >
             <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
-            {label}
+            <span className="segmented-label">{label}</span>
           </button>
         ))}
       </div>

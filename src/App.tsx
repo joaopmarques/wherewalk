@@ -6,6 +6,7 @@ import { planRoutes, type PlanResult } from './domain/planner'
 import { isFinished, matchProgress, measureRoute, sliceRoute } from './domain/progress'
 import { targetToMeters } from './domain/target'
 import type { LngLat, Route, Target, TargetKind, WalkerSettings } from './domain/types'
+import { useAnimatedHeight } from './hooks/useAnimatedHeight'
 import { useGeolocation } from './hooks/useGeolocation'
 import { useWakeLock } from './hooks/useWakeLock'
 import { BUILT_IN_ORS_KEY, createOrsRouter, RouterError } from './routing/ors'
@@ -51,6 +52,7 @@ export function App() {
   // A saved Walk from an earlier visit starts with the map fitted to its Route.
   const [fitKey, setFitKey] = useState(() => (loadActiveWalk() ? 1 : 0))
   const [showSettings, setShowSettings] = useState(false)
+  const { boxRef, contentRef } = useAnimatedHeight<HTMLElement, HTMLDivElement>()
 
   const updateSettings = (next: WalkerSettings) => {
     setSettings(next)
@@ -257,10 +259,12 @@ export function App() {
         follow={phase.name === 'walking'}
         fitKey={fitKey}
       />
-      <section className="control-box" aria-label="Controls">
-        {/* A new key per screen replays the entrance animation when the sign changes. */}
-        <div key={showSettings ? 'settings' : phase.name} className="sign-content">
-          {panel}
+      <section ref={boxRef} className="control-box" aria-label="Controls">
+        <div ref={contentRef}>
+          {/* A new key per screen replays the entrance animation when the sign changes. */}
+          <div key={showSettings ? 'settings' : phase.name} className="sign-content">
+            {panel}
+          </div>
         </div>
       </section>
     </div>
