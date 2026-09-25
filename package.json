@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "build": "tsc && vite build",
+    "build-storybook": "storybook build",
     "check": "ultracite check",
     "dev": "vite",
     "fix": "ultracite fix",
     "prepare": "husky",
     "preview": "vite preview",
-    "test": "vitest run",
+    "storybook": "storybook dev -p 6006",
+    "test": "vitest run --project unit --project storybook",
+    "test:visual": "sh scripts/visual.sh",
+    "test:visual:update": "sh scripts/visual.sh --update",
     "typecheck": "tsc"
   },
   "dependencies": {
