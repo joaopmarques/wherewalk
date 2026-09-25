@@ -1,34 +1,45 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   // Relative base so the static build works on any host path, such as GitHub Pages.
-  base: './',
+  base: "./",
   // MapLibre is most of the bundle, and it does not split well.
   build: { chunkSizeWarningLimit: 1500 },
-  worker: { format: 'es' },
   plugins: [
     react(),
+    tailwindcss(),
     VitePWA({
-      // A new version takes over as soon as it installs. main.tsx decides when the page reloads.
-      registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ["icon.svg"],
       manifest: {
-        name: 'Where2Walk',
-        short_name: 'Where2Walk',
-        description: 'Plan a walk that starts and ends where you are.',
-        theme_color: '#17773f',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait',
-        icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }],
+        background_color: "#ffffff",
+        description: "Plan a walk that starts and ends where you are.",
+        display: "standalone",
+        icons: [
+          {
+            purpose: "any maskable",
+            sizes: "any",
+            src: "icon.svg",
+            type: "image/svg+xml",
+          },
+        ],
+        name: "Where2Walk",
+        orientation: "portrait",
+        short_name: "Where2Walk",
+        theme_color: "#17773f",
       },
+      // A new version takes over as soon as it installs. main.tsx decides when the page reloads.
+      registerType: "autoUpdate",
       workbox: {
         // Cache only the app shell. Map tiles and routes always come from the network.
-        globPatterns: ['**/*.{js,css,html,svg}'],
+        globPatterns: ["**/*.{js,css,html,svg}"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
   ],
-})
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  worker: { format: "es" },
+});
