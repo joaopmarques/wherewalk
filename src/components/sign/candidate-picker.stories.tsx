@@ -4,11 +4,11 @@ import { expect } from "storybook/test";
 import { CandidatePicker } from "./candidate-picker";
 
 const OPTIONS = [
-  { color: "#2563eb", label: "2.5 km" },
-  { color: "#e11d48", label: "2.4 km" },
-  { color: "#d97706", label: "2.6 km" },
-  { color: "#7c3aed", label: "2.3 km" },
-  { color: "#0d9488", label: "2.7 km" },
+  { color: "var(--route-1)", label: "2.5 km" },
+  { color: "var(--route-2)", label: "2.4 km" },
+  { color: "var(--route-3)", label: "2.6 km" },
+  { color: "var(--route-4)", label: "2.3 km" },
+  { color: "var(--route-5)", label: "2.7 km" },
 ];
 
 function Demo({ count }: { count: number }) {

@@ -32,16 +32,8 @@ import {
   saveActiveWalk,
   saveSettings,
 } from "@/storage";
+import { routeColors } from "@/ui/read-token";
 import { metersPerUnit, resolveUnits } from "@/units";
-
-/** One color per Candidate. The Selected Route and its button share the color. */
-const CANDIDATE_COLORS = [
-  "#2563eb",
-  "#e11d48",
-  "#d97706",
-  "#7c3aed",
-  "#0d9488",
-];
 
 /** ORS does not plan round trips longer than 100 km. */
 const MAX_TARGET_M = 100_000;
@@ -68,6 +60,8 @@ const newSeed = () => Math.floor(Math.random() * 1000);
 
 export function App() {
   const geo = useGeolocation();
+  // One color per Candidate. The Selected Route and its button share the color.
+  const [candidateColors] = useState(routeColors);
   const [settings, setSettings] = useState<WalkerSettings>(loadSettings);
   const units = resolveUnits(settings.units);
   const [phase, setPhase] = useState<Phase>(() => {
@@ -243,7 +237,7 @@ export function App() {
     if (planned) {
       return resultRoutes(planned).map((r, i) => ({
         arrows: r.shape === "loop",
-        color: CANDIDATE_COLORS[i],
+        color: candidateColors[i],
         coordinates: r.coordinates,
       }));
     }
@@ -306,7 +300,7 @@ export function App() {
     const routes = resultRoutes(phase.result);
     panel = (
       <ResultsPanel
-        colors={CANDIDATE_COLORS}
+        colors={candidateColors}
         onBack={() => setPhase({ name: "setup", planning: false })}
         onReplan={() => plan(phase.target)}
         onSelect={(selected) => setPhase({ ...phase, selected })}
@@ -315,7 +309,7 @@ export function App() {
         onStart={() =>
           startWalk(
             routes[phase.selected],
-            CANDIDATE_COLORS[phase.selected],
+            candidateColors[phase.selected],
             phase.target
           )
         }
@@ -362,7 +356,7 @@ export function App() {
   }
 
   return (
-    <div className="app">
+    <div className="fixed inset-0">
       <MapView
         fitKey={fitKey}
         follow={phase.name === "walking"}

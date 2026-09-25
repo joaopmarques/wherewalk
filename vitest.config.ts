@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
+import tailwindcss from "@tailwindcss/vite";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
@@ -10,13 +11,19 @@ const browser = {
   enabled: true,
   headless: true,
   instances: [{ browser: "chromium" as const }],
+  // The window must fit the 390x844 frame. Vitest scales a frame that does not fit, and blurs it.
   provider: playwright({
-    contextOptions: { locale: "en-US", timezoneId: "UTC" },
+    contextOptions: {
+      locale: "en-US",
+      timezoneId: "UTC",
+      viewport: { height: 1000, width: 1280 },
+    },
   }),
   viewport: { height: 844, width: 390 },
 };
 
 export default defineConfig({
+  plugins: [tailwindcss()],
   resolve: { alias: { "@": src } },
   test: {
     projects: [

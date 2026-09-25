@@ -12,7 +12,13 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["!dist", "!dev-dist", "!storybook-static", "!pnpm-lock.yaml"]
+    "includes": [
+      "!dist",
+      "!dev-dist",
+      "!storybook-static",
+      "!pnpm-lock.yaml",
+      "!src/ui/*.css"
+    ]
   },
   "linter": {
     "rules": {
@@ -32,7 +38,10 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ],
       "linter": {
         "rules": {
           "suspicious": {

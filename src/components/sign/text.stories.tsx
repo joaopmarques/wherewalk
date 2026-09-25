@@ -17,7 +17,7 @@ function Demo() {
       </SignHeader>
       <SignTitle>Resume your walk?</SignTitle>
       <SignHeader>
-        <RouteSwatch color="#e11d48" />
+        <RouteSwatch color="var(--route-2)" />
         <BigValue unit="km" value="2.4" />
       </SignHeader>
       <Caption>About 29 min · Loop</Caption>

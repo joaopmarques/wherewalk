@@ -2,6 +2,7 @@ import { Check, RotateCcw, Settings } from "lucide-react";
 import { useState } from "react";
 import { Credit } from "@/components/sign/credit";
 import { Field, SelectField } from "@/components/sign/field";
+import { SignRow } from "@/components/sign/row";
 import { SignButton } from "@/components/sign/sign-button";
 import { SignHeader, SignTitle } from "@/components/sign/sign-header";
 import { Hint } from "@/components/sign/text";
@@ -71,12 +72,7 @@ export function SettingsPanel({
   return (
     <div>
       <SignHeader>
-        <Settings
-          aria-hidden="true"
-          className="header-icon"
-          size={28}
-          strokeWidth={2.25}
-        />
+        <Settings aria-hidden="true" size={28} strokeWidth={2.25} />
         <SignTitle>Settings</SignTitle>
       </SignHeader>
       <SelectField
@@ -85,7 +81,7 @@ export function SettingsPanel({
         options={UNIT_OPTIONS}
         value={settings.units}
       />
-      <div className="row">
+      <SignRow>
         <Field
           inputMode="decimal"
           label={`Pace (${imperial ? "mph" : "km/h"})`}
@@ -104,7 +100,7 @@ export function SettingsPanel({
           type="number"
           value={stride}
         />
-      </div>
+      </SignRow>
       <SignButton onClick={reset} variant="link">
         <RotateCcw aria-hidden="true" size={14} strokeWidth={2.5} />
         Reset pace and stride

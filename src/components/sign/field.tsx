@@ -1,15 +1,33 @@
-import type { InputHTMLAttributes } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { Input } from "@/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/ui/native-select";
+
+function FieldLabel({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label: string;
+}) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="font-bold text-2xs uppercase tracking-wider">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
 
 /** A labeled text or number input on the Settings Panel. */
 export function Field({
   label,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+}: ComponentProps<"input"> & { label: string }) {
   return (
-    <label className="field">
-      <span>{label}</span>
-      <input {...props} />
-    </label>
+    <FieldLabel label={label}>
+      <Input {...props} />
+    </FieldLabel>
   );
 }
 
@@ -26,15 +44,17 @@ export function SelectField<T extends string>({
   value: T;
 }) {
   return (
-    <label className="field">
-      <span>{label}</span>
-      <select onChange={(e) => onChange(e.target.value as T)} value={value}>
+    <FieldLabel label={label}>
+      <NativeSelect
+        onChange={(e) => onChange(e.target.value as T)}
+        value={value}
+      >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
+          <NativeSelectOption key={o.value} value={o.value}>
             {o.label}
-          </option>
+          </NativeSelectOption>
         ))}
-      </select>
-    </label>
+      </NativeSelect>
+    </FieldLabel>
   );
 }

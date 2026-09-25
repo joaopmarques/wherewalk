@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Switch } from "@/ui/switch";
 
 export function Toggle({
   checked,
@@ -10,13 +11,9 @@ export function Toggle({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="toggle">
-      <input
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        type="checkbox"
-      />
-      <span aria-hidden="true" className="toggle-track" />
+    // biome-ignore lint/a11y/noLabelWithoutControl: the Switch inside is the control.
+    <label className="relative flex cursor-pointer items-center gap-2.5 self-start font-bold text-sm">
+      <Switch checked={checked} onCheckedChange={onChange} />
       {children}
     </label>
   );

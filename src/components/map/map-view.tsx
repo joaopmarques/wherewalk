@@ -1,3 +1,4 @@
+import { LocateFixed } from "lucide-react";
 import {
   AttributionControl,
   type GeoJSONSource,
@@ -8,18 +9,17 @@ import {
   type PaddingOptions,
   setWorkerUrl,
 } from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { LocateFixed } from "lucide-react";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { useEffect, useRef, useState } from "react";
 import type { LngLat } from "@/domain/types";
+import { cn } from "@/ui/cn";
+import { readToken } from "@/ui/read-token";
 
 // MapLibre finds its worker next to its own file, but the bundler moves that file.
 // Vite bundles the worker separately and gives its URL here.
 setWorkerUrl(workerUrl);
 
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-const WALKED_COLOR = "#9aa3ad";
 
 export interface MapRoute {
   /** Direction arrows help on a Loop. On an Out-and-back they overlap, so they stay off. */
@@ -77,8 +77,8 @@ function arrowImage() {
   ctx.lineJoin = "round";
   // A dark outline keeps the white chevron visible on both the white casing and the route color.
   for (const [color, width] of [
-    ["rgba(0, 0, 0, 0.5)", 12],
-    ["#ffffff", 6],
+    [readToken("route-shadow"), 12],
+    [readToken("route-casing"), 6],
   ] as const) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
@@ -144,7 +144,7 @@ export function MapView(props: Props) {
         filter: ["==", ["get", "selected"], true],
         id: "route-casing",
         layout: lineLayout,
-        paint: { "line-color": "#ffffff", "line-width": 10 },
+        paint: { "line-color": readToken("route-casing"), "line-width": 10 },
         source: "routes",
         type: "line",
       });
@@ -159,7 +159,7 @@ export function MapView(props: Props) {
       m.addLayer({
         id: "route-walked",
         layout: lineLayout,
-        paint: { "line-color": WALKED_COLOR, "line-width": 6 },
+        paint: { "line-color": readToken("route-walked"), "line-width": 6 },
         source: "walked",
         type: "line",
       });
@@ -213,10 +213,14 @@ export function MapView(props: Props) {
     }
     if (!originMarker.current) {
       const el = document.createElement("div");
-      el.className = "origin-marker";
+      el.className =
+        "grid h-9 w-7 items-start justify-items-center [&.is-draggable]:cursor-grab";
       el.setAttribute("aria-label", "Origin");
       // MapLibre positions the marker with a transform, so the pin shape goes on an inner element.
-      el.appendChild(document.createElement("div")).className = "origin-pin";
+      el.appendChild(document.createElement("div")).className = cn(
+        "size-7 -rotate-45 rounded-[50%_50%_50%_0] border-3 border-card-foreground",
+        "bg-(image:--gradient-card-diagonal) shadow-marker"
+      );
       originMarker.current = new Marker({ anchor: "bottom", element: el })
         .setLngLat(props.origin)
         .addTo(m);
@@ -306,9 +310,13 @@ export function MapView(props: Props) {
     }
     if (!positionMarker.current) {
       const el = document.createElement("div");
-      el.className = "position-marker";
+      el.className =
+        "relative size-5 rounded-full border-3 border-card-foreground bg-position shadow-position";
       const arrow = document.createElement("div");
-      arrow.className = "position-arrow";
+      arrow.className = cn(
+        "absolute top-1/2 left-1/2 -mt-6.5 -ml-1.75 size-0 origin-[7px_26px]",
+        "border-x-7 border-x-transparent border-b-12 border-b-position"
+      );
       el.appendChild(arrow);
       positionArrow.current = arrow;
       positionMarker.current = new Marker({ element: el })
@@ -344,10 +352,15 @@ export function MapView(props: Props) {
 
   return (
     <>
-      <div className="map" ref={container} />
+      <div className="absolute inset-0" ref={container} />
       {props.follow && userMoved && (
         <button
-          className="recenter"
+          // A small guide sign.
+          className={cn(
+            "absolute top-[calc(56px+env(safe-area-inset-top))] right-3 inline-flex min-h-11 items-center gap-1.75 rounded-full border-0 px-4.5",
+            "bg-(image:--gradient-card) font-extrabold text-card-foreground text-shadow-recenter shadow-recenter",
+            "outline-2 outline-card-foreground -outline-offset-5"
+          )}
           onClick={() => setUserMoved(false)}
           type="button"
         >

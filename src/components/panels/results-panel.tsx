@@ -5,6 +5,7 @@ import {
   RouteSwatch,
 } from "@/components/sign/candidate-picker";
 import { Plaque } from "@/components/sign/plaque";
+import { SignRow } from "@/components/sign/row";
 import { SignButton } from "@/components/sign/sign-button";
 import { SignHeader } from "@/components/sign/sign-header";
 import { Caption } from "@/components/sign/text";
@@ -92,7 +93,7 @@ export function ResultsPanel(p: ResultsPanelProps) {
         />{" "}
         Start walk
       </SignButton>
-      <div className="row">
+      <SignRow>
         <SignButton onClick={p.onReplan} variant="outline">
           <RefreshCw aria-hidden="true" size={16} strokeWidth={2.5} /> New
           routes
@@ -101,7 +102,7 @@ export function ResultsPanel(p: ResultsPanelProps) {
           <ArrowLeft aria-hidden="true" size={16} strokeWidth={2.5} /> Change
           target
         </SignButton>
-      </div>
+      </SignRow>
     </div>
   );
 }

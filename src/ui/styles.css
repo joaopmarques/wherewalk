@@ -1,0 +1,42 @@
+@import "tailwindcss";
+/* In a layer, so utilities such as absolute beat MapLibre's own rules. Unlayered CSS would win. */
+@import "maplibre-gl/dist/maplibre-gl.css" layer(components);
+@import "./tokens.css";
+
+/* Short phones, such as an iPhone SE: the Sign tightens so it fits without scrolling. */
+@custom-variant short (@media (max-height: 720px));
+
+@layer base {
+  html {
+    /* Tailwind sets 1.5. The Sign was drawn with the browser default. */
+    line-height: normal;
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    overscroll-behavior: none;
+    background: var(--background);
+  }
+
+  button {
+    text-shadow: inherit;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+}

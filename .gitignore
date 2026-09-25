@@ -9,3 +9,4 @@ dev-dist
 !.env.example
 storybook-static
 .vitest-attachments
+.pnpm-store

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Field, SelectField } from "./field";
+import { SignRow } from "./row";
 
 function Demo() {
   return (
@@ -13,10 +14,10 @@ function Demo() {
         ]}
         value="auto"
       />
-      <div className="row">
+      <SignRow>
         <Field defaultValue="5" label="Pace (km/h)" type="number" />
         <Field defaultValue="75" label="Stride (cm)" type="number" />
-      </div>
+      </SignRow>
       <Field
         label="Your OpenRouteService key"
         placeholder="Optional. The built-in key is in use."

@@ -29,6 +29,8 @@ export const On: Story = { args: { initial: true } };
 export const Switch: Story = {
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByText("Show all routes"));
-    await expect(canvas.getByRole("checkbox")).toBeChecked();
+    await expect(
+      canvas.getByRole("switch", { name: "Show all routes" })
+    ).toBeChecked();
   },
 };

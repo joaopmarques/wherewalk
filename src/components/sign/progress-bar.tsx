@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { Progress } from "@/ui/progress";
 
 /** Walk Progress as a bar in the Selected Route's color. */
 export function ProgressBar({
@@ -9,16 +9,6 @@ export function ProgressBar({
   fraction: number;
 }) {
   return (
-    <div
-      aria-label="Walk progress"
-      aria-valuemax={100}
-      aria-valuemin={0}
-      aria-valuenow={Math.round(fraction * 100)}
-      className="progress-bar"
-      role="progressbar"
-      style={{ "--candidate": color } as CSSProperties}
-    >
-      <div style={{ transform: `scaleX(${fraction})` }} />
-    </div>
+    <Progress aria-label="Walk progress" color={color} value={fraction * 100} />
   );
 }

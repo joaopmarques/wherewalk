@@ -8,7 +8,7 @@ export const FIXED_NOW = Date.UTC(2026, 8, 25, 17, 0);
 
 export const ORIGIN: LngLat = [-9.1395, 38.7115];
 
-export const COLORS = ["#2563eb", "#e11d48", "#d97706", "#7c3aed", "#0d9488"];
+export const COLORS = [1, 2, 3, 4, 5].map((n) => `var(--route-${n})`);
 
 export const SETTINGS: WalkerSettings = { ...DEFAULT_SETTINGS };
 

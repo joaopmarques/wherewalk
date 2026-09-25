@@ -1,7 +1,7 @@
 import type { Decorator, Preview } from "@storybook/react-vite";
 import { FIXED_NOW } from "../src/components/panels/fixtures";
 import { Sign } from "../src/components/sign/sign";
-import "../src/styles.css";
+import "../src/ui/styles.css";
 
 /**
  * `backdrop: "sign"` puts the story inside the Sign, on a phone screen with a still map behind it.
@@ -11,7 +11,7 @@ const withBackdrop: Decorator = (Story, { id, parameters }) =>
   parameters.backdrop === "sign" ? (
     <div
       style={{
-        background: "#f2efe9 url(basemap.jpg) center / cover",
+        background: "var(--background) url(basemap.jpg) center / cover",
         height: 844,
         position: "relative",
         width: 390,

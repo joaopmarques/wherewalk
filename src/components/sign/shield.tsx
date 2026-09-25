@@ -18,7 +18,7 @@ export function Shield({
   return (
     <svg
       aria-hidden="true"
-      className="shield"
+      className="flex-none drop-shadow-shield"
       height={size * 1.1}
       viewBox="0 0 40 44"
       width={size}
@@ -28,14 +28,18 @@ export function Shield({
           <path d={INNER} />
         </clipPath>
       </defs>
-      <path d={OUTER} fill="#fff" stroke="rgba(0,0,0,0.55)" strokeWidth="1" />
+      <path
+        className="fill-card-foreground stroke-shade/55"
+        d={OUTER}
+        strokeWidth="1"
+      />
       <g clipPath={`url(#${clipId})`}>
-        <rect fill="#1d4f9f" height="44" width="40" />
-        <rect fill="#c62032" height="14" width="40" />
-        <rect fill="#fff" height="1.8" width="40" y="14" />
+        <rect className="fill-shield-blue" height="44" width="40" />
+        <rect className="fill-shield-red" height="14" width="40" />
+        <rect className="fill-card-foreground" height="1.8" width="40" y="14" />
       </g>
       <text
-        fill="#fff"
+        className="fill-card-foreground"
         fontFamily="Overpass, sans-serif"
         fontSize="19"
         fontWeight="800"
