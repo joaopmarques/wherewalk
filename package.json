@@ -1,17 +1,17 @@
 {
   "name": "wherewalk",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "tsc && vite build",
+    "check": "ultracite check",
+    "dev": "vite",
+    "fix": "ultracite fix",
+    "prepare": "husky",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "prepare": "husky"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "lucide-react": "^1.48.0",

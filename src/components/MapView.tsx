@@ -1,16 +1,16 @@
 import {
   AttributionControl,
+  type GeoJSONSource,
   LngLatBounds,
   MapLibreMap,
-  Marker,
-  type GeoJSONSource,
   type MapMouseEvent,
+  Marker,
   type PaddingOptions,
   setWorkerUrl,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { LocateFixed } from "lucide-react";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { useEffect, useRef, useState } from "react";
 import type { LngLat } from "../domain/types";
 
@@ -22,49 +22,49 @@ const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 const WALKED_COLOR = "#9aa3ad";
 
 export interface MapRoute {
-  coordinates: LngLat[];
-  color: string;
   /** Direction arrows help on a Loop. On an Out-and-back they overlap, so they stay off. */
   arrows: boolean;
+  color: string;
+  coordinates: LngLat[];
 }
 
 interface Props {
+  /** Changes to this value fit the map to the routes. */
+  fitKey: number;
+  /** Keep the map centered on the Walker's position. */
+  follow: boolean;
+  heading: number | null;
+  onMapClick?: (point: LngLat) => void;
+  onOriginChange: (origin: LngLat) => void;
   origin: LngLat | null;
   originDraggable: boolean;
-  onOriginChange: (origin: LngLat) => void;
-  onMapClick?: (point: LngLat) => void;
+  position: LngLat | null;
   routes: MapRoute[];
   selectedIndex: number;
   showAll: boolean;
   /** The part of the Selected Route the Walker has already covered. */
   walked: LngLat[];
-  position: LngLat | null;
-  heading: number | null;
-  /** Keep the map centered on the Walker's position. */
-  follow: boolean;
-  /** Changes to this value fit the map to the routes. */
-  fitKey: number;
 }
 
 /** Space the floating control box covers, so the map keeps routes out from under it. */
 function controlPadding(): PaddingOptions {
   return window.innerWidth < 720
     ? {
-        top: 48,
-        right: 32,
         bottom: Math.min(360, window.innerHeight * 0.45),
         left: 32,
+        right: 32,
+        top: 48,
       }
-    : { top: 64, right: 64, bottom: 64, left: 420 };
+    : { bottom: 64, left: 420, right: 64, top: 64 };
 }
 
 const lineFeature = (
   coordinates: LngLat[],
   properties: Record<string, unknown> = {}
 ) => ({
-  type: "Feature" as const,
-  geometry: { type: "LineString" as const, coordinates },
+  geometry: { coordinates, type: "LineString" as const },
   properties,
+  type: "Feature" as const,
 });
 
 /** A small chevron that points along the line, to show which way to walk. */
@@ -89,7 +89,7 @@ function arrowImage() {
     ctx.stroke();
   }
   const { data } = ctx.getImageData(0, 0, size, size);
-  return { width: size, height: size, data: new Uint8Array(data.buffer) };
+  return { data: new Uint8Array(data.buffer), height: size, width: size };
 }
 
 export function MapView(props: Props) {
@@ -107,11 +107,11 @@ export function MapView(props: Props) {
   // Create the map once.
   useEffect(() => {
     const m = new MapLibreMap({
+      attributionControl: false,
+      center: [0, 20],
       container: container.current!,
       style: STYLE_URL,
-      center: [0, 20],
       zoom: 1.5,
-      attributionControl: false,
     });
     // The control box covers the bottom of the screen on phones, so the map credits go top-right.
     m.addControl(new AttributionControl({ compact: true }), "top-right");
@@ -120,66 +120,66 @@ export function MapView(props: Props) {
     m.on("load", () => {
       m.addImage("route-arrow", arrowImage(), { pixelRatio: 2 });
       m.addSource("routes", {
+        data: { features: [], type: "FeatureCollection" },
         type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
       });
       m.addSource("walked", {
+        data: { features: [], type: "FeatureCollection" },
         type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
       });
       const lineLayout = { "line-cap": "round", "line-join": "round" } as const;
       m.addLayer({
-        id: "routes-others",
-        type: "line",
-        source: "routes",
         filter: ["==", ["get", "selected"], false],
+        id: "routes-others",
         layout: { ...lineLayout, visibility: "none" },
         paint: {
           "line-color": ["get", "color"],
-          "line-width": 4,
           "line-opacity": 0.6,
+          "line-width": 4,
         },
+        source: "routes",
+        type: "line",
       });
       m.addLayer({
-        id: "route-casing",
-        type: "line",
-        source: "routes",
         filter: ["==", ["get", "selected"], true],
+        id: "route-casing",
         layout: lineLayout,
         paint: { "line-color": "#ffffff", "line-width": 10 },
+        source: "routes",
+        type: "line",
       });
       m.addLayer({
-        id: "route-selected",
-        type: "line",
-        source: "routes",
         filter: ["==", ["get", "selected"], true],
+        id: "route-selected",
         layout: lineLayout,
         paint: { "line-color": ["get", "color"], "line-width": 6 },
+        source: "routes",
+        type: "line",
       });
       m.addLayer({
         id: "route-walked",
-        type: "line",
-        source: "walked",
         layout: lineLayout,
         paint: { "line-color": WALKED_COLOR, "line-width": 6 },
+        source: "walked",
+        type: "line",
       });
       m.addLayer({
-        id: "route-arrows",
-        type: "symbol",
-        source: "routes",
         filter: [
           "all",
           ["==", ["get", "selected"], true],
           ["==", ["get", "arrows"], true],
         ],
+        id: "route-arrows",
         layout: {
-          "symbol-placement": "line",
-          "symbol-spacing": 110,
-          "icon-image": "route-arrow",
           "icon-allow-overlap": true,
           "icon-ignore-placement": true,
+          "icon-image": "route-arrow",
           "icon-rotation-alignment": "map",
+          "symbol-placement": "line",
+          "symbol-spacing": 110,
         },
+        source: "routes",
+        type: "symbol",
       });
       setLoaded(true);
     });
@@ -189,7 +189,9 @@ export function MapView(props: Props) {
     );
     // Only a drag by the Walker has an original input event. Camera animations do not.
     m.on("dragstart", (e: { originalEvent?: Event }) => {
-      if (e.originalEvent) setUserMoved(true);
+      if (e.originalEvent) {
+        setUserMoved(true);
+      }
     });
 
     return () => {
@@ -206,14 +208,16 @@ export function MapView(props: Props) {
   // Origin marker.
   useEffect(() => {
     const m = map.current;
-    if (!m || !props.origin) return;
+    if (!(m && props.origin)) {
+      return;
+    }
     if (!originMarker.current) {
       const el = document.createElement("div");
       el.className = "origin-marker";
       el.setAttribute("aria-label", "Origin");
       // MapLibre positions the marker with a transform, so the pin shape goes on an inner element.
       el.appendChild(document.createElement("div")).className = "origin-pin";
-      originMarker.current = new Marker({ element: el, anchor: "bottom" })
+      originMarker.current = new Marker({ anchor: "bottom", element: el })
         .setLngLat(props.origin)
         .addTo(m);
       originMarker.current.on("dragend", () => {
@@ -235,11 +239,13 @@ export function MapView(props: Props) {
   // Routes.
   useEffect(() => {
     const m = map.current;
-    if (!m || !loaded) return;
+    if (!(m && loaded)) {
+      return;
+    }
     const features = props.routes.map((r, i) =>
       lineFeature(r.coordinates, {
-        color: r.color,
         arrows: r.arrows,
+        color: r.color,
         selected: i === props.selectedIndex,
       })
     );
@@ -248,8 +254,8 @@ export function MapView(props: Props) {
       (a, b) => Number(a.properties.selected) - Number(b.properties.selected)
     );
     (m.getSource("routes") as GeoJSONSource).setData({
-      type: "FeatureCollection",
       features,
+      type: "FeatureCollection",
     });
     m.setLayoutProperty(
       "routes-others",
@@ -261,26 +267,33 @@ export function MapView(props: Props) {
   // Walked part of the Selected Route.
   useEffect(() => {
     const m = map.current;
-    if (!m || !loaded) return;
+    if (!(m && loaded)) {
+      return;
+    }
     const features =
       props.walked.length >= 2 ? [lineFeature(props.walked)] : [];
     (m.getSource("walked") as GeoJSONSource).setData({
-      type: "FeatureCollection",
       features,
+      type: "FeatureCollection",
     });
   }, [loaded, props.walked]);
 
   // Fit the map to the routes when a new plan arrives.
   useEffect(() => {
     const m = map.current;
-    if (!m || props.fitKey === 0 || props.routes.length === 0) return;
+    if (!m || props.fitKey === 0 || props.routes.length === 0) {
+      return;
+    }
     const bounds = new LngLatBounds();
-    for (const r of props.routes)
-      for (const c of r.coordinates) bounds.extend(c);
+    for (const r of props.routes) {
+      for (const c of r.coordinates) {
+        bounds.extend(c);
+      }
+    }
     m.fitBounds(bounds, {
-      padding: controlPadding(),
-      maxZoom: 17,
       duration: 600,
+      maxZoom: 17,
+      padding: controlPadding(),
     });
     // Only a new plan refits, not a change of the Selected Route.
   }, [props.fitKey]);
@@ -288,7 +301,9 @@ export function MapView(props: Props) {
   // Walker position marker with a heading arrow.
   useEffect(() => {
     const m = map.current;
-    if (!m || !props.position) return;
+    if (!(m && props.position)) {
+      return;
+    }
     if (!positionMarker.current) {
       const el = document.createElement("div");
       el.className = "position-marker";
@@ -303,35 +318,40 @@ export function MapView(props: Props) {
     positionMarker.current.setLngLat(props.position);
     const arrow = positionArrow.current!;
     arrow.style.display = props.heading === null ? "none" : "block";
-    if (props.heading !== null)
+    if (props.heading !== null) {
       arrow.style.transform = `rotate(${props.heading}deg)`;
+    }
   }, [props.position, props.heading]);
 
   // Follow the Walker during a Walk, until they move the map by hand.
   useEffect(() => {
-    if (!props.follow) setUserMoved(false);
+    if (!props.follow) {
+      setUserMoved(false);
+    }
   }, [props.follow]);
 
   useEffect(() => {
     const m = map.current;
-    if (!m || !props.follow || userMoved || !props.position) return;
+    if (!(m && props.follow) || userMoved || !props.position) {
+      return;
+    }
     m.easeTo({
       center: props.position,
-      padding: controlPadding(),
       duration: 500,
+      padding: controlPadding(),
     });
   }, [props.follow, userMoved, props.position]);
 
   return (
     <>
-      <div ref={container} className="map" />
+      <div className="map" ref={container} />
       {props.follow && userMoved && (
         <button
-          type="button"
           className="recenter"
           onClick={() => setUserMoved(false)}
+          type="button"
         >
-          <LocateFixed size={18} strokeWidth={2.5} aria-hidden="true" />
+          <LocateFixed aria-hidden="true" size={18} strokeWidth={2.5} />
           Recenter
         </button>
       )}

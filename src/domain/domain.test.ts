@@ -116,9 +116,9 @@ describe("Route planner", () => {
         calls.loop++;
         const mid: LngLat = [seed, seed];
         return {
-          shape: "loop",
           coordinates: [o, mid, o],
           lengthM: lengthM * loopFactors[seed % loopFactors.length],
+          shape: "loop",
         };
       },
       path: async (from, to) => {
@@ -129,14 +129,16 @@ describe("Route planner", () => {
         };
       },
     };
-    return { router, calls };
+    return { calls, router };
   }
 
   it("returns fitting Loops sorted by closeness to the Target", async () => {
     const { router, calls } = fakeRouter([1.05, 2, 0.97, 3, 1.02]);
     const result = await planRoutes(origin, 3000, router);
     expect(result.kind).toBe("candidates");
-    if (result.kind !== "candidates") return;
+    if (result.kind !== "candidates") {
+      return;
+    }
     expect(result.candidates.map((r) => Math.round(r.lengthM))).toEqual([
       3060, 2910, 3150,
     ]);
@@ -148,7 +150,9 @@ describe("Route planner", () => {
     const { router, calls } = fakeRouter([2.1, 3.4, 1.3, 2.2, 2.8]);
     const result = await planRoutes(origin, 2500, router);
     expect(result.kind).toBe("candidates");
-    if (result.kind !== "candidates") return;
+    if (result.kind !== "candidates") {
+      return;
+    }
     expect(result.candidates).toHaveLength(5);
     expect(
       result.candidates.every(
@@ -161,16 +165,16 @@ describe("Route planner", () => {
 
   it("removes duplicate Loops from different seeds", async () => {
     const same: Route = {
-      shape: "loop",
       coordinates: [origin, [1, 1], origin],
       lengthM: 3000,
+      shape: "loop",
     };
     const router: Router = {
       loop: async () => same,
       path: () => Promise.reject(new Error("unused")),
     };
     const result = await planRoutes(origin, 3000, router);
-    expect(result).toEqual({ kind: "candidates", candidates: [same] });
+    expect(result).toEqual({ candidates: [same], kind: "candidates" });
   });
 
   it("falls back to Out-and-backs when no Loop fits", async () => {
@@ -180,7 +184,9 @@ describe("Route planner", () => {
     };
     const result = await planRoutes(origin, 3000, failingLoops);
     expect(result.kind).toBe("candidates");
-    if (result.kind !== "candidates") return;
+    if (result.kind !== "candidates") {
+      return;
+    }
     expect(result.candidates.every((r) => r.shape === "out-and-back")).toBe(
       true
     );
@@ -195,15 +201,17 @@ describe("Route planner", () => {
     let call = 0;
     const router: Router = {
       loop: async (o, _lengthM, seed) => ({
-        shape: "loop",
         coordinates: [o, [seed, seed], o],
         lengthM: lengths[call++ % 3],
+        shape: "loop",
       }),
       path: async (from, to) => ({ coordinates: [from, to], lengthM: 300 }),
     };
     const result = await planRoutes(origin, 3000, router);
     expect(result.kind).toBe("closest");
-    if (result.kind !== "closest") return;
+    if (result.kind !== "closest") {
+      return;
+    }
     expect(result.route.lengthM).toBe(2000);
   });
 
@@ -222,18 +230,22 @@ describe("Route planner", () => {
     const quota = Object.assign(new Error("quota"), { stopsPlanning: true });
     const router: Router = {
       loop: async (o, lengthM, seed) => {
-        if (seed === 1) throw quota;
+        if (seed === 1) {
+          throw quota;
+        }
         return {
-          shape: "loop",
           coordinates: [o, [seed, seed], o],
           lengthM: seed === 0 ? lengthM : lengthM * 3,
+          shape: "loop",
         };
       },
       path: () => Promise.reject(new Error("unused")),
     };
     const result = await planRoutes(origin, 3000, router);
     expect(result.kind).toBe("candidates");
-    if (result.kind !== "candidates") return;
+    if (result.kind !== "candidates") {
+      return;
+    }
     expect(result.candidates.map((r) => r.lengthM)).toEqual([3000]);
   });
 

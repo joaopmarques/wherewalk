@@ -8,9 +8,11 @@ export const CM_PER_IN = 2.54;
 const IMPERIAL_REGIONS = new Set(["US", "GB", "LR", "MM"]);
 
 export function resolveUnits(preference: UnitPreference): Units {
-  if (preference !== "auto") return preference;
+  if (preference !== "auto") {
+    return preference;
+  }
   try {
-    const region = new Intl.Locale(navigator.language).maximize().region;
+    const { region } = new Intl.Locale(navigator.language).maximize();
     return region && IMPERIAL_REGIONS.has(region) ? "imperial" : "metric";
   } catch {
     return "metric";
@@ -32,7 +34,9 @@ export const formatDistance = (meters: number, units: Units) =>
 
 export function formatMinutes(minutes: number): string {
   const rounded = Math.max(0, Math.round(minutes));
-  if (rounded < 60) return `${rounded} min`;
+  if (rounded < 60) {
+    return `${rounded} min`;
+  }
   const m = rounded % 60;
   return m === 0
     ? `${rounded / 60} h`

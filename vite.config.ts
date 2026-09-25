@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
@@ -7,30 +7,29 @@ export default defineConfig({
   base: "./",
   // MapLibre is most of the bundle, and it does not split well.
   build: { chunkSizeWarningLimit: 1500 },
-  worker: { format: "es" },
   plugins: [
     react(),
     VitePWA({
-      // A new version takes over as soon as it installs. main.tsx decides when the page reloads.
-      registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
       manifest: {
-        name: "Where2Walk",
-        short_name: "Where2Walk",
-        description: "Plan a walk that starts and ends where you are.",
-        theme_color: "#17773f",
         background_color: "#ffffff",
+        description: "Plan a walk that starts and ends where you are.",
         display: "standalone",
-        orientation: "portrait",
         icons: [
           {
-            src: "icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
             purpose: "any maskable",
+            sizes: "any",
+            src: "icon.svg",
+            type: "image/svg+xml",
           },
         ],
+        name: "Where2Walk",
+        orientation: "portrait",
+        short_name: "Where2Walk",
+        theme_color: "#17773f",
       },
+      // A new version takes over as soon as it installs. main.tsx decides when the page reloads.
+      registerType: "autoUpdate",
       workbox: {
         // Cache only the app shell. Map tiles and routes always come from the network.
         globPatterns: ["**/*.{js,css,html,svg}"],
@@ -38,4 +37,5 @@ export default defineConfig({
       },
     }),
   ],
+  worker: { format: "es" },
 });

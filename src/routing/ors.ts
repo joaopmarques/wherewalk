@@ -27,15 +27,16 @@ export type RouterErrorKind =
 export class RouterError extends Error {
   /** Only a missing route is local to one request. Every other error affects all requests. */
   readonly stopsPlanning: boolean;
+  readonly kind: RouterErrorKind;
 
-  constructor(
-    readonly kind: RouterErrorKind,
-    message: string
-  ) {
-    super(message);
+  constructor(kind: RouterErrorKind, message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.kind = kind;
     this.stopsPlanning = kind !== "no-route";
   }
 }
+
+const QUOTA_PATTERN = /quota/i;
 
 /** The built-in shared key. A Walker's own key in settings overrides it. */
 export const BUILT_IN_ORS_KEY: string = import.meta.env.VITE_ORS_KEY ?? "";
@@ -43,67 +44,14 @@ export const BUILT_IN_ORS_KEY: string = import.meta.env.VITE_ORS_KEY ?? "";
 /** Router adapter for the hosted OpenRouteService API. A self-hosted ORS takes a different URL. */
 export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
   const request = async (body: object) => {
-    if (!apiKey)
+    if (!apiKey) {
       throw new RouterError("no-key", "No ORS key. Add one in settings.");
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: "POST",
-        headers: { Authorization: apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...body,
-          instructions: false,
-          elevation: false,
-          extra_info: ["waycategory"],
-        }),
-      });
-    } catch {
-      if (!navigator.onLine)
-        throw new RouterError(
-          "network",
-          "You are offline. Connect to the internet and try again."
-        );
-      throw new RouterError(
-        "network",
-        "Cannot reach the routing service. Wait a minute and try again."
-      );
     }
-    if (response.status === 401 || response.status === 403) {
-      const body = await response.text();
-      if (/quota/i.test(body)) {
-        throw new RouterError(
-          "quota",
-          "The daily routing quota is used up. Try again tomorrow, or add your own ORS key in settings."
-        );
-      }
-      throw new RouterError(
-        "bad-key",
-        "The ORS key is not valid. Check it in settings."
-      );
+    const response = await send(url, apiKey, body);
+    if (!response.ok) {
+      throw await statusError(response);
     }
-    if (response.status === 429) {
-      throw new RouterError(
-        "quota",
-        "The routing quota is used up. Wait a minute and try again, or add your own ORS key in settings."
-      );
-    }
-    if (!response.ok)
-      throw new RouterError("no-route", "No walking route found from here.");
-
-    const data = await response.json();
-    const feature = data?.features?.[0];
-    const coordinates: LngLat[] | undefined = feature?.geometry?.coordinates;
-    const lengthM: number | undefined = feature?.properties?.summary?.distance;
-    if (!coordinates || coordinates.length < 2 || lengthM === undefined) {
-      throw new RouterError("no-route", "No walking route found from here.");
-    }
-    // Each value is [first point, last point, category bits] for one part of the route.
-    const categories: [number, number, number][] =
-      feature?.properties?.extras?.waycategory?.values ?? [];
-    if (categories.some(([, , bits]) => bits & WAY_CATEGORY_MOTOR_ROAD)) {
-      throw new RouterError("no-route", "No walking route found from here.");
-    }
-    return { coordinates, lengthM };
+    return parseRoute(await response.json());
   };
 
   return {
@@ -111,12 +59,12 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
       const route = await request({
         coordinates: [origin],
         options: {
+          avoid_features: AVOID_FEATURES,
           round_trip: {
             length: Math.round(lengthM),
             points: LOOP_POINTS,
             seed,
           },
-          avoid_features: AVOID_FEATURES,
         },
       });
       return { shape: "loop", ...route };
@@ -125,8 +73,70 @@ export function createOrsRouter(apiKey: string, url = ORS_URL): Router {
     path: (from, to) =>
       request({
         coordinates: [from, to],
-        radiuses: [1000, -1],
         options: { avoid_features: AVOID_FEATURES },
+        radiuses: [1000, -1],
       }),
   };
+}
+
+async function send(url: string, apiKey: string, body: object) {
+  try {
+    return await fetch(url, {
+      body: JSON.stringify({
+        ...body,
+        elevation: false,
+        extra_info: ["waycategory"],
+        instructions: false,
+      }),
+      headers: { Authorization: apiKey, "Content-Type": "application/json" },
+      method: "POST",
+    });
+  } catch (cause) {
+    const message = navigator.onLine
+      ? "Cannot reach the routing service. Wait a minute and try again."
+      : "You are offline. Connect to the internet and try again.";
+    // biome-ignore lint/style/useErrorCause: RouterError passes the cause to Error.
+    throw new RouterError("network", message, { cause });
+  }
+}
+
+async function statusError(response: Response): Promise<RouterError> {
+  if (response.status === 401 || response.status === 403) {
+    const text = await response.text();
+    if (QUOTA_PATTERN.test(text)) {
+      return new RouterError(
+        "quota",
+        "The daily routing quota is used up. Try again tomorrow, or add your own ORS key in settings."
+      );
+    }
+    return new RouterError(
+      "bad-key",
+      "The ORS key is not valid. Check it in settings."
+    );
+  }
+  if (response.status === 429) {
+    return new RouterError(
+      "quota",
+      "The routing quota is used up. Wait a minute and try again, or add your own ORS key in settings."
+    );
+  }
+  return new RouterError("no-route", "No walking route found from here.");
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: the ORS response is untyped JSON.
+function parseRoute(data: any): { coordinates: LngLat[]; lengthM: number } {
+  const feature = data?.features?.[0];
+  const coordinates: LngLat[] | undefined = feature?.geometry?.coordinates;
+  const lengthM: number | undefined = feature?.properties?.summary?.distance;
+  if (!coordinates || coordinates.length < 2 || lengthM === undefined) {
+    throw new RouterError("no-route", "No walking route found from here.");
+  }
+  // Each value is [first point, last point, category bits] for one part of the route.
+  const categories: [number, number, number][] =
+    feature?.properties?.extras?.waycategory?.values ?? [];
+  // biome-ignore lint/suspicious/noBitwiseOperators: ORS packs way categories into bit flags.
+  if (categories.some(([, , bits]) => bits & WAY_CATEGORY_MOTOR_ROAD)) {
+    throw new RouterError("no-route", "No walking route found from here.");
+  }
+  return { coordinates, lengthM };
 }

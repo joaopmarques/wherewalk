@@ -5,6 +5,7 @@ import {
   Flag,
   Footprints,
   LocateFixed,
+  type LucideIcon,
   OctagonAlert,
   Play,
   RefreshCw,
@@ -13,9 +14,8 @@ import {
   Settings,
   Square,
   TriangleAlert,
-  type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import type { PlanResult } from "../domain/planner";
 import { metersToTargetUnit } from "../domain/target";
 import type { Route, TargetKind, Units, WalkerSettings } from "../domain/types";
@@ -30,9 +30,9 @@ import {
 import { RouteShield } from "./RouteShield";
 
 const KINDS: { kind: TargetKind; label: string; icon: LucideIcon }[] = [
-  { kind: "time", label: "Time", icon: Clock },
-  { kind: "distance", label: "Distance", icon: Ruler },
-  { kind: "steps", label: "Steps", icon: Footprints },
+  { icon: Clock, kind: "time", label: "Time" },
+  { icon: Ruler, kind: "distance", label: "Distance" },
+  { icon: Footprints, kind: "steps", label: "Steps" },
 ];
 
 export type OriginStatus =
@@ -53,12 +53,12 @@ const clockTime = (date: Date) =>
 function SettingsButton({ onClick }: { onClick: () => void }) {
   return (
     <button
-      type="button"
+      aria-label="Settings"
       className="icon-button"
       onClick={onClick}
-      aria-label="Settings"
+      type="button"
     >
-      <Settings size={20} strokeWidth={2.25} aria-hidden="true" />
+      <Settings aria-hidden="true" size={20} strokeWidth={2.25} />
     </button>
   );
 }
@@ -77,7 +77,7 @@ function BigValue({ value, unit }: { value: string; unit: string }) {
 function WarningPlaque({ children }: { children: ReactNode }) {
   return (
     <p className="plaque plaque-warning">
-      <TriangleAlert size={18} strokeWidth={2.5} aria-hidden="true" />
+      <TriangleAlert aria-hidden="true" size={18} strokeWidth={2.5} />
       <span>{children}</span>
     </p>
   );
@@ -86,7 +86,7 @@ function WarningPlaque({ children }: { children: ReactNode }) {
 function ErrorPlaque({ children }: { children: ReactNode }) {
   return (
     <p className="plaque plaque-error" role="alert">
-      <OctagonAlert size={18} strokeWidth={2.5} aria-hidden="true" />
+      <OctagonAlert aria-hidden="true" size={18} strokeWidth={2.5} />
       <span>{children}</span>
     </p>
   );
@@ -95,33 +95,33 @@ function ErrorPlaque({ children }: { children: ReactNode }) {
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 interface SetupProps {
-  kind: TargetKind;
-  value: string;
-  units: Units;
-  targetM: number | null;
-  originStatus: OriginStatus;
-  planning: boolean;
   error: string | null;
+  kind: TargetKind;
   onKind: (kind: TargetKind) => void;
-  onValue: (value: string) => void;
-  onUseMyLocation: () => void;
   onPlan: () => void;
   onSettings: () => void;
+  onUseMyLocation: () => void;
+  onValue: (value: string) => void;
+  originStatus: OriginStatus;
+  planning: boolean;
+  targetM: number | null;
+  units: Units;
+  value: string;
 }
 
 export function SetupPanel(p: SetupProps) {
   const unitLabel = {
-    time: "min",
     distance: distanceUnit(p.units),
     steps: "steps",
+    time: "min",
   }[p.kind];
   const originText = {
-    locating: "Finding your location…",
     gps: "Starting from your location. Drag the pin to change it.",
+    locating: "Finding your location…",
+    "no-location": "Location is off. Tap the map to set a start point.",
     pin: "Starting from the pin.",
     "pin-no-location":
       "Starting from the pin. Drag it or tap the map to move it.",
-    "no-location": "Location is off. Tap the map to set a start point.",
   }[p.originStatus];
 
   return (
@@ -141,29 +141,29 @@ export function SetupPanel(p: SetupProps) {
         How much do you want to walk?
       </p>
       <div
+        aria-labelledby="target-label"
         className="segmented"
         role="radiogroup"
-        aria-labelledby="target-label"
       >
         <span
+          aria-hidden="true"
           className="segmented-pill"
           style={
             {
               "--index": KINDS.findIndex((k) => k.kind === p.kind),
             } as CSSProperties
           }
-          aria-hidden="true"
         />
         {KINDS.map(({ kind, label, icon: Icon }) => (
           <button
-            key={kind}
-            type="button"
-            role="radio"
             aria-checked={p.kind === kind}
             className={p.kind === kind ? "is-active" : ""}
+            key={kind}
             onClick={() => p.onKind(kind)}
+            role="radio"
+            type="button"
           >
-            <Icon size={16} strokeWidth={2.5} aria-hidden="true" />
+            <Icon aria-hidden="true" size={16} strokeWidth={2.5} />
             <span className="segmented-label">{label}</span>
           </button>
         ))}
@@ -171,13 +171,13 @@ export function SetupPanel(p: SetupProps) {
 
       <label className="target-input">
         <input
-          type="number"
+          aria-label={`Target in ${unitLabel}`}
           inputMode="decimal"
           min="0"
-          step="any"
-          value={p.value}
           onChange={(e) => p.onValue(e.target.value)}
-          aria-label={`Target in ${unitLabel}`}
+          step="any"
+          type="number"
+          value={p.value}
         />
         <span>{unitLabel}</span>
       </label>
@@ -188,8 +188,8 @@ export function SetupPanel(p: SetupProps) {
       <p className="hint origin-hint">
         {originText}
         {p.originStatus === "pin" && (
-          <button type="button" className="link" onClick={p.onUseMyLocation}>
-            <LocateFixed size={14} strokeWidth={2.5} aria-hidden="true" />
+          <button className="link" onClick={p.onUseMyLocation} type="button">
+            <LocateFixed aria-hidden="true" size={14} strokeWidth={2.5} />
             Use my location
           </button>
         )}
@@ -198,7 +198,6 @@ export function SetupPanel(p: SetupProps) {
       {p.error && <ErrorPlaque>{p.error}</ErrorPlaque>}
 
       <button
-        type="submit"
         className="btn-exit"
         disabled={
           p.planning ||
@@ -206,14 +205,15 @@ export function SetupPanel(p: SetupProps) {
           p.originStatus === "locating" ||
           p.originStatus === "no-location"
         }
+        type="submit"
       >
         {p.planning ? (
           <>
-            <span className="spinner" aria-hidden="true" /> Finding routes…
+            <span aria-hidden="true" className="spinner" /> Finding routes…
           </>
         ) : (
           <>
-            <RouteIcon size={20} strokeWidth={2.5} aria-hidden="true" /> Plan
+            <RouteIcon aria-hidden="true" size={20} strokeWidth={2.5} /> Plan
             route
           </>
         )}
@@ -225,20 +225,20 @@ export function SetupPanel(p: SetupProps) {
 // ─── Results ─────────────────────────────────────────────────────────────────
 
 interface ResultsProps {
+  colors: string[];
+  onBack: () => void;
+  onReplan: () => void;
+  onSelect: (index: number) => void;
+  onSettings: () => void;
+  onShowAll: (showAll: boolean) => void;
+  onStart: () => void;
   result: PlanResult;
   routes: Route[];
-  colors: string[];
   selected: number;
+  settings: WalkerSettings;
   showAll: boolean;
   targetM: number;
   units: Units;
-  settings: WalkerSettings;
-  onSelect: (index: number) => void;
-  onShowAll: (showAll: boolean) => void;
-  onStart: () => void;
-  onReplan: () => void;
-  onBack: () => void;
-  onSettings: () => void;
 }
 
 export function ResultsPanel(p: ResultsProps) {
@@ -248,13 +248,13 @@ export function ResultsPanel(p: ResultsProps) {
     <div>
       <div className="sign-header">
         <span
+          aria-hidden="true"
           className="route-swatch"
           style={{ "--candidate": p.colors[p.selected] } as CSSProperties}
-          aria-hidden="true"
         />
         <BigValue
-          value={formatDistanceNumber(route.lengthM, p.units)}
           unit={distanceUnit(p.units)}
+          value={formatDistanceNumber(route.lengthM, p.units)}
         />
         <SettingsButton onClick={p.onSettings} />
       </div>
@@ -276,50 +276,50 @@ export function ResultsPanel(p: ResultsProps) {
 
       {p.routes.length > 1 && (
         <>
-          <div className="candidates" role="radiogroup" aria-label="Routes">
+          <div aria-label="Routes" className="candidates" role="radiogroup">
             {p.routes.map((r, i) => (
               <button
-                key={i}
-                type="button"
-                role="radio"
                 aria-checked={i === p.selected}
                 className={`candidate ${i === p.selected ? "is-active" : ""}`}
-                style={{ "--candidate": p.colors[i] } as CSSProperties}
+                key={i}
                 onClick={() => p.onSelect(i)}
+                role="radio"
+                style={{ "--candidate": p.colors[i] } as CSSProperties}
+                type="button"
               >
-                <span className="dot" aria-hidden="true" />
+                <span aria-hidden="true" className="dot" />
                 {formatDistance(r.lengthM, p.units)}
               </button>
             ))}
           </div>
           <label className="toggle">
             <input
-              type="checkbox"
               checked={p.showAll}
               onChange={(e) => p.onShowAll(e.target.checked)}
+              type="checkbox"
             />
-            <span className="toggle-track" aria-hidden="true" />
+            <span aria-hidden="true" className="toggle-track" />
             Show all routes
           </label>
         </>
       )}
 
-      <button type="button" className="btn-exit" onClick={p.onStart}>
+      <button className="btn-exit" onClick={p.onStart} type="button">
         <Play
+          aria-hidden="true"
+          fill="currentColor"
           size={18}
           strokeWidth={2.75}
-          fill="currentColor"
-          aria-hidden="true"
         />{" "}
         Start walk
       </button>
       <div className="row">
-        <button type="button" className="btn-outline" onClick={p.onReplan}>
-          <RefreshCw size={16} strokeWidth={2.5} aria-hidden="true" /> New
+        <button className="btn-outline" onClick={p.onReplan} type="button">
+          <RefreshCw aria-hidden="true" size={16} strokeWidth={2.5} /> New
           routes
         </button>
-        <button type="button" className="btn-outline" onClick={p.onBack}>
-          <ArrowLeft size={16} strokeWidth={2.5} aria-hidden="true" /> Change
+        <button className="btn-outline" onClick={p.onBack} type="button">
+          <ArrowLeft aria-hidden="true" size={16} strokeWidth={2.5} /> Change
           target
         </button>
       </div>
@@ -349,28 +349,28 @@ function leftInTargetUnit(
   switch (walk.target.kind) {
     case "steps":
       return {
-        value: formatSteps(metersToTargetUnit(leftM, "steps", settings)),
         unit: "steps left",
+        value: formatSteps(metersToTargetUnit(leftM, "steps", settings)),
       };
     case "time":
       return {
-        value: String(Math.max(0, Math.round(routeMinutes(leftM, settings)))),
         unit: "min left",
+        value: String(Math.max(0, Math.round(routeMinutes(leftM, settings)))),
       };
     case "distance":
       return {
-        value: formatDistanceNumber(leftM, units),
         unit: `${distanceUnit(units)} left`,
+        value: formatDistanceNumber(leftM, units),
       };
   }
 }
 
 interface WalkProps {
-  walk: ActiveWalk;
-  units: Units;
-  settings: WalkerSettings;
   hasPosition: boolean;
   onEnd: () => void;
+  settings: WalkerSettings;
+  units: Units;
+  walk: ActiveWalk;
 }
 
 export function WalkPanel({
@@ -396,25 +396,25 @@ export function WalkPanel({
     <div>
       <div className="walk-sign">
         <Footprints
+          aria-hidden="true"
           className="walk-icon"
           size={44}
           strokeWidth={2.25}
-          aria-hidden="true"
         />
         <div aria-live="polite">
-          <BigValue value={value} unit={unit} />
+          <BigValue unit={unit} value={value} />
           <p className="caption">
             Back around {clockTime(new Date(now + leftMinutes * 60_000))}
           </p>
         </div>
       </div>
       <div
+        aria-label="Walk progress"
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={Math.round(fraction * 100)}
         className="progress-bar"
         role="progressbar"
-        aria-label="Walk progress"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(fraction * 100)}
         style={{ "--candidate": walk.color } as CSSProperties}
       >
         <div style={{ transform: `scaleX(${fraction})` }} />
@@ -423,12 +423,12 @@ export function WalkPanel({
         {done} · {formatMinutes((now - walk.startedAt) / 60_000)} walked
       </p>
       {!hasPosition && <p className="hint">Waiting for your location…</p>}
-      <button type="button" className="btn-outline" onClick={onEnd}>
+      <button className="btn-outline" onClick={onEnd} type="button">
         <Square
+          aria-hidden="true"
+          fill="currentColor"
           size={14}
           strokeWidth={3}
-          fill="currentColor"
-          aria-hidden="true"
         />{" "}
         End walk
       </button>
@@ -439,10 +439,10 @@ export function WalkPanel({
 // ─── Finished and resume ─────────────────────────────────────────────────────
 
 interface FinishedProps {
-  walk: ActiveWalk;
   endedAt: number;
-  units: Units;
   onDone: () => void;
+  units: Units;
+  walk: ActiveWalk;
 }
 
 export function FinishedPanel({ walk, endedAt, units, onDone }: FinishedProps) {
@@ -450,34 +450,34 @@ export function FinishedPanel({ walk, endedAt, units, onDone }: FinishedProps) {
     <div>
       <div className="walk-sign">
         <Flag
+          aria-hidden="true"
           className="walk-icon"
           size={44}
           strokeWidth={2.25}
-          aria-hidden="true"
         />
         <div>
           <p className="caption">Walk finished</p>
           <BigValue
-            value={formatDistanceNumber(walk.route.lengthM, units)}
             unit={distanceUnit(units)}
+            value={formatDistanceNumber(walk.route.lengthM, units)}
           />
           <p className="caption">
             In {formatMinutes((endedAt - walk.startedAt) / 60_000)}
           </p>
         </div>
       </div>
-      <button type="button" className="btn-exit" onClick={onDone}>
-        <Check size={20} strokeWidth={3} aria-hidden="true" /> Done
+      <button className="btn-exit" onClick={onDone} type="button">
+        <Check aria-hidden="true" size={20} strokeWidth={3} /> Done
       </button>
     </div>
   );
 }
 
 interface ResumeProps {
-  walk: ActiveWalk;
-  units: Units;
-  onResume: () => void;
   onDiscard: () => void;
+  onResume: () => void;
+  units: Units;
+  walk: ActiveWalk;
 }
 
 export function ResumePanel({ walk, units, onResume, onDiscard }: ResumeProps) {
@@ -485,10 +485,10 @@ export function ResumePanel({ walk, units, onResume, onDiscard }: ResumeProps) {
     <div>
       <div className="walk-sign">
         <Footprints
+          aria-hidden="true"
           className="walk-icon"
           size={44}
           strokeWidth={2.25}
-          aria-hidden="true"
         />
         <div>
           <h1 className="title">Resume your walk?</h1>
@@ -498,16 +498,16 @@ export function ResumePanel({ walk, units, onResume, onDiscard }: ResumeProps) {
           </p>
         </div>
       </div>
-      <button type="button" className="btn-exit" onClick={onResume}>
+      <button className="btn-exit" onClick={onResume} type="button">
         <Play
+          aria-hidden="true"
+          fill="currentColor"
           size={18}
           strokeWidth={2.75}
-          fill="currentColor"
-          aria-hidden="true"
         />{" "}
         Resume walk
       </button>
-      <button type="button" className="btn-outline" onClick={onDiscard}>
+      <button className="btn-outline" onClick={onDiscard} type="button">
         Discard
       </button>
     </div>

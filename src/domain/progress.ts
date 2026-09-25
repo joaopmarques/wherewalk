@@ -25,7 +25,7 @@ export function measureRoute(coordinates: LngLat[]): MeasuredRoute {
   return {
     coordinates,
     cumulativeM,
-    lengthM: cumulativeM[cumulativeM.length - 1],
+    lengthM: cumulativeM.at(-1) ?? 0,
   };
 }
 
@@ -44,10 +44,12 @@ export function matchProgress(
 ): number {
   const { coordinates, cumulativeM } = route;
   const matches: { alongM: number; offsetM: number }[] = [];
-  let bestOffset = Infinity;
+  let bestOffset = Number.POSITIVE_INFINITY;
 
   for (let i = 0; i < coordinates.length - 1; i++) {
-    if (cumulativeM[i + 1] < previousM) continue;
+    if (cumulativeM[i + 1] < previousM) {
+      continue;
+    }
     const { t, offsetM } = projectOnSegment(
       position,
       coordinates[i],
@@ -61,12 +63,15 @@ export function matchProgress(
     bestOffset = Math.min(bestOffset, offsetM);
   }
 
-  if (bestOffset > MAX_MATCH_OFFSET_M) return previousM;
+  if (bestOffset > MAX_MATCH_OFFSET_M) {
+    return previousM;
+  }
 
-  let earliest = Infinity;
+  let earliest = Number.POSITIVE_INFINITY;
   for (const m of matches) {
-    if (m.offsetM <= bestOffset + TIE_OFFSET_M)
+    if (m.offsetM <= bestOffset + TIE_OFFSET_M) {
       earliest = Math.min(earliest, m.alongM);
+    }
   }
   return Math.max(previousM, earliest);
 }
@@ -78,7 +83,9 @@ export function isFinished(
   progressM: number,
   origin: LngLat
 ): boolean {
-  if (progressM < route.lengthM / 2) return false;
+  if (progressM < route.lengthM / 2) {
+    return false;
+  }
   return (
     distanceM(position, origin) <= FINISH_RADIUS_M ||
     progressM >= route.lengthM - FINISH_RADIUS_M
@@ -88,7 +95,9 @@ export function isFinished(
 /** The part of the Route from the start up to a distance along it. */
 export function sliceRoute(route: MeasuredRoute, untilM: number): LngLat[] {
   const { coordinates, cumulativeM } = route;
-  if (untilM <= 0 || coordinates.length < 2) return [];
+  if (untilM <= 0 || coordinates.length < 2) {
+    return [];
+  }
   const result: LngLat[] = [coordinates[0]];
   for (let i = 1; i < coordinates.length; i++) {
     if (cumulativeM[i] <= untilM) {

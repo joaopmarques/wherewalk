@@ -6,15 +6,20 @@ import { useEffect } from "react";
  */
 export function useWakeLock(active: boolean) {
   useEffect(() => {
-    if (!active || !("wakeLock" in navigator)) return;
+    if (!(active && "wakeLock" in navigator)) {
+      return;
+    }
     let sentinel: WakeLockSentinel | null = null;
     let cancelled = false;
 
     const acquire = async () => {
       try {
         const lock = await navigator.wakeLock.request("screen");
-        if (cancelled) lock.release();
-        else sentinel = lock;
+        if (cancelled) {
+          lock.release();
+        } else {
+          sentinel = lock;
+        }
       } catch {
         // The browser can refuse, for example in low-power mode. The Walk still works.
       }

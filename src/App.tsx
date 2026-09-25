@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { MapView, type MapRoute } from "./components/MapView";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type MapRoute, MapView } from "./components/MapView";
 import {
   FinishedPanel,
+  type OriginStatus,
   ResultsPanel,
   ResumePanel,
   SetupPanel,
   WalkPanel,
-  type OriginStatus,
 } from "./components/panels";
 import { SettingsPanel } from "./components/SettingsPanel";
-import { planRoutes, type PlanResult } from "./domain/planner";
+import { type PlanResult, planRoutes } from "./domain/planner";
 import {
   isFinished,
   matchProgress,
@@ -24,16 +24,16 @@ import type {
   TargetKind,
   WalkerSettings,
 } from "./domain/types";
-import { useAnimatedHeight } from "./hooks/useAnimatedHeight";
-import { useGeolocation } from "./hooks/useGeolocation";
-import { useWakeLock } from "./hooks/useWakeLock";
+import { useAnimatedHeight } from "./hooks/use-animated-height";
+import { useGeolocation } from "./hooks/use-geolocation";
+import { useWakeLock } from "./hooks/use-wake-lock";
 import { BUILT_IN_ORS_KEY, createOrsRouter, RouterError } from "./routing/ors";
 import {
+  type ActiveWalk,
   loadActiveWalk,
   loadSettings,
   saveActiveWalk,
   saveSettings,
-  type ActiveWalk,
 } from "./storage";
 import { metersPerUnit, resolveUnits } from "./units";
 
@@ -83,9 +83,9 @@ export function App() {
   const [originIsPin, setOriginIsPin] = useState(false);
   const [kind, setKind] = useState<TargetKind>("time");
   const [inputs, setInputs] = useState<Record<TargetKind, string>>(() => ({
-    time: "30",
     distance: units === "imperial" ? "2" : "3",
     steps: "5000",
+    time: "30",
   }));
   const [error, setError] = useState<string | null>(null);
   // A saved Walk from an earlier visit starts with the map fitted to its Route.
@@ -103,26 +103,33 @@ export function App() {
 
   // Until the Walker drags the pin, the Origin follows the GPS position during setup.
   useEffect(() => {
-    if (phase.name === "setup" && !originIsPin && geo.position)
+    if (phase.name === "setup" && !originIsPin && geo.position) {
       setOrigin(geo.position);
+    }
   }, [phase.name, originIsPin, geo.position]);
 
   // ─── Target ──────────────────────────────────────────────────────────────
   const target: Target | null = useMemo(() => {
     const n = Number(inputs[kind]);
-    if (!(n > 0)) return null;
+    if (!(n > 0)) {
+      return null;
+    }
     return { kind, value: kind === "distance" ? n * metersPerUnit(units) : n };
   }, [inputs, kind, units]);
   const targetM = target ? targetToMeters(target, settings) : null;
 
   // ─── Planning ────────────────────────────────────────────────────────────
   const plan = async (planTarget: Target) => {
-    if (!origin) return;
+    if (!origin) {
+      return;
+    }
     const planTargetM = targetToMeters(planTarget, settings);
-    if (planTargetM > MAX_TARGET_M)
+    if (planTargetM > MAX_TARGET_M) {
       return setError("Targets above 100 km are not supported.");
-    if (planTargetM < MIN_TARGET_M)
+    }
+    if (planTargetM < MIN_TARGET_M) {
       return setError("The Target is too small. Try at least 200 m.");
+    }
     setError(null);
     setPhase({ name: "setup", planning: true });
     try {
@@ -132,11 +139,11 @@ export function App() {
       const result = await planRoutes(origin, planTargetM, router, newSeed());
       setPhase({
         name: "results",
-        target: planTarget,
-        targetM: planTargetM,
         result,
         selected: 0,
         showAll: false,
+        target: planTarget,
+        targetM: planTargetM,
       });
       setFitKey((k) => k + 1);
     } catch (e) {
@@ -153,12 +160,16 @@ export function App() {
     setOrigin(next);
     setOriginIsPin(true);
     // A moved Origin makes the planned Candidates wrong.
-    if (phase.name === "results") setPhase({ name: "setup", planning: false });
+    if (phase.name === "results") {
+      setPhase({ name: "setup", planning: false });
+    }
   };
 
   const useMyLocation = () => {
     setOriginIsPin(false);
-    if (geo.position) setOrigin(geo.position);
+    if (geo.position) {
+      setOrigin(geo.position);
+    }
   };
 
   // ─── Walk ────────────────────────────────────────────────────────────────
@@ -181,14 +192,16 @@ export function App() {
   );
 
   const startWalk = (route: Route, color: string, walkTarget: Target) => {
-    if (!origin) return;
+    if (!origin) {
+      return;
+    }
     const next: ActiveWalk = {
-      route,
       color,
       origin,
-      target: walkTarget,
       progressM: 0,
+      route,
       startedAt: Date.now(),
+      target: walkTarget,
     };
     saveActiveWalk(next);
     setPhase({ name: "walking", walk: next });
@@ -196,7 +209,9 @@ export function App() {
 
   // Each new position moves Progress forward. After a screen lock, the first new position catches up.
   useEffect(() => {
-    if (phase.name !== "walking" || !measured || !geo.position) return;
+    if (phase.name !== "walking" || !measured || !geo.position) {
+      return;
+    }
     const current = phase.walk;
     const progressM = matchProgress(measured, geo.position, current.progressM);
     const next =
@@ -204,9 +219,9 @@ export function App() {
     if (isFinished(measured, geo.position, next.progressM, next.origin)) {
       saveActiveWalk(null);
       setPhase({
+        endedAt: Date.now(),
         name: "finished",
         walk: { ...next, progressM: measured.lengthM },
-        endedAt: Date.now(),
       });
     } else if (next !== current) {
       saveActiveWalk(next);
@@ -217,7 +232,9 @@ export function App() {
   useWakeLock(phase.name === "walking");
 
   const endWalk = () => {
-    if (!window.confirm("End this walk?")) return;
+    if (!window.confirm("End this walk?")) {
+      return;
+    }
     saveActiveWalk(null);
     backToSetup();
   };
@@ -232,19 +249,20 @@ export function App() {
   const mapRoutes = useMemo<MapRoute[]>(() => {
     if (planned) {
       return resultRoutes(planned).map((r, i) => ({
-        coordinates: r.coordinates,
-        color: CANDIDATE_COLORS[i],
         arrows: r.shape === "loop",
+        color: CANDIDATE_COLORS[i],
+        coordinates: r.coordinates,
       }));
     }
-    if (walk)
+    if (walk) {
       return [
         {
-          coordinates: walk.route.coordinates,
-          color: walk.color,
           arrows: walk.route.shape === "loop",
+          color: walk.color,
+          coordinates: walk.route.coordinates,
         },
       ];
+    }
     return [];
     // Progress updates make a new walk object, but the Route and color stay the same.
   }, [planned, walk?.route, walk?.color]);
@@ -266,44 +284,40 @@ export function App() {
   if (showSettings) {
     panel = (
       <SettingsPanel
-        key={units}
-        settings={settings}
-        units={units}
         hasBuiltInKey={BUILT_IN_ORS_KEY !== ""}
+        key={units}
         onChange={updateSettings}
         onClose={() => setShowSettings(false)}
+        settings={settings}
+        units={units}
       />
     );
   } else if (phase.name === "setup") {
     panel = (
       <SetupPanel
-        kind={kind}
-        value={inputs[kind]}
-        units={units}
-        targetM={targetM}
-        originStatus={originStatus}
-        planning={phase.planning}
         error={error}
+        kind={kind}
         onKind={setKind}
-        onValue={(value) => setInputs((prev) => ({ ...prev, [kind]: value }))}
-        onUseMyLocation={useMyLocation}
         onPlan={() => target && plan(target)}
         onSettings={() => setShowSettings(true)}
+        onUseMyLocation={useMyLocation}
+        onValue={(value) => setInputs((prev) => ({ ...prev, [kind]: value }))}
+        originStatus={originStatus}
+        planning={phase.planning}
+        targetM={targetM}
+        units={units}
+        value={inputs[kind]}
       />
     );
   } else if (phase.name === "results") {
     const routes = resultRoutes(phase.result);
     panel = (
       <ResultsPanel
-        result={phase.result}
-        routes={routes}
         colors={CANDIDATE_COLORS}
-        selected={phase.selected}
-        showAll={phase.showAll}
-        targetM={phase.targetM}
-        units={units}
-        settings={settings}
+        onBack={() => setPhase({ name: "setup", planning: false })}
+        onReplan={() => plan(phase.target)}
         onSelect={(selected) => setPhase({ ...phase, selected })}
+        onSettings={() => setShowSettings(true)}
         onShowAll={(showAll) => setPhase({ ...phase, showAll })}
         onStart={() =>
           startWalk(
@@ -312,40 +326,44 @@ export function App() {
             phase.target
           )
         }
-        onReplan={() => plan(phase.target)}
-        onBack={() => setPhase({ name: "setup", planning: false })}
-        onSettings={() => setShowSettings(true)}
+        result={phase.result}
+        routes={routes}
+        selected={phase.selected}
+        settings={settings}
+        showAll={phase.showAll}
+        targetM={phase.targetM}
+        units={units}
       />
     );
   } else if (phase.name === "walking") {
     panel = (
       <WalkPanel
-        walk={phase.walk}
-        units={units}
-        settings={settings}
         hasPosition={geo.position !== null}
         onEnd={endWalk}
+        settings={settings}
+        units={units}
+        walk={phase.walk}
       />
     );
   } else if (phase.name === "finished") {
     panel = (
       <FinishedPanel
-        walk={phase.walk}
         endedAt={phase.endedAt}
-        units={units}
         onDone={backToSetup}
+        units={units}
+        walk={phase.walk}
       />
     );
   } else {
     panel = (
       <ResumePanel
-        walk={phase.walk}
-        units={units}
-        onResume={() => setPhase({ name: "walking", walk: phase.walk })}
         onDiscard={() => {
           saveActiveWalk(null);
           backToSetup();
         }}
+        onResume={() => setPhase({ name: "walking", walk: phase.walk })}
+        units={units}
+        walk={phase.walk}
       />
     );
   }
@@ -353,29 +371,29 @@ export function App() {
   return (
     <div className="app">
       <MapView
-        origin={origin}
-        originDraggable={setupActive}
-        onOriginChange={changeOrigin}
+        fitKey={fitKey}
+        follow={phase.name === "walking"}
+        heading={geo.heading}
         onMapClick={
           phase.name === "setup" && (geo.error || !origin)
             ? changeOrigin
             : undefined
         }
+        onOriginChange={changeOrigin}
+        origin={origin}
+        originDraggable={setupActive}
+        position={geo.position}
         routes={mapRoutes}
         selectedIndex={phase.name === "results" ? phase.selected : 0}
         showAll={phase.name === "results" && phase.showAll}
         walked={walked}
-        position={geo.position}
-        heading={geo.heading}
-        follow={phase.name === "walking"}
-        fitKey={fitKey}
       />
-      <section ref={boxRef} className="control-box" aria-label="Controls">
+      <section aria-label="Controls" className="control-box" ref={boxRef}>
         <div ref={contentRef}>
           {/* A new key per screen replays the entrance animation when the sign changes. */}
           <div
-            key={showSettings ? "settings" : phase.name}
             className="sign-content"
+            key={showSettings ? "settings" : phase.name}
           >
             {panel}
           </div>

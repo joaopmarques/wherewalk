@@ -5,9 +5,9 @@ export type RouteShape = "loop" | "out-and-back";
 
 /** A planned path that starts and ends at the Origin. */
 export interface Route {
-  shape: RouteShape;
   coordinates: LngLat[];
   lengthM: number;
+  shape: RouteShape;
 }
 
 export type TargetKind = "time" | "distance" | "steps";
@@ -25,9 +25,9 @@ export type UnitPreference = "auto" | "metric" | "imperial";
 export type Units = "metric" | "imperial";
 
 export interface WalkerSettings {
+  /** The Walker's own ORS key. An empty string means "use the built-in key". */
+  orsKey: string;
   paceKmh: number;
   strideM: number;
   units: UnitPreference;
-  /** The Walker's own ORS key. An empty string means "use the built-in key". */
-  orsKey: string;
 }

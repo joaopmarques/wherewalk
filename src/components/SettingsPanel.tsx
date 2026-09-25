@@ -5,11 +5,11 @@ import { DEFAULT_SETTINGS } from "../storage";
 import { CM_PER_IN, M_PER_MI } from "../units";
 
 interface Props {
-  settings: WalkerSettings;
-  units: Units;
   hasBuiltInKey: boolean;
   onChange: (settings: WalkerSettings) => void;
   onClose: () => void;
+  settings: WalkerSettings;
+  units: Units;
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -33,17 +33,19 @@ export function SettingsPanel({
   const updatePace = (text: string) => {
     setPace(text);
     const n = Number(text);
-    if (n > 0)
+    if (n > 0) {
       onChange({ ...settings, paceKmh: imperial ? (n * M_PER_MI) / 1000 : n });
+    }
   };
   const updateStride = (text: string) => {
     setStride(text);
     const n = Number(text);
-    if (n > 0)
+    if (n > 0) {
       onChange({
         ...settings,
         strideM: imperial ? (n * CM_PER_IN) / 100 : n / 100,
       });
+    }
   };
   const reset = () => {
     onChange({
@@ -59,20 +61,20 @@ export function SettingsPanel({
     <div>
       <div className="sign-header">
         <Settings
+          aria-hidden="true"
           className="header-icon"
           size={28}
           strokeWidth={2.25}
-          aria-hidden="true"
         />
         <h1 className="title">Settings</h1>
       </div>
       <label className="field">
         <span>Units</span>
         <select
-          value={settings.units}
           onChange={(e) =>
             onChange({ ...settings, units: e.target.value as UnitPreference })
           }
+          value={settings.units}
         >
           <option value="auto">Automatic</option>
           <option value="metric">Kilometers</option>
@@ -83,62 +85,62 @@ export function SettingsPanel({
         <label className="field">
           <span>Pace ({imperial ? "mph" : "km/h"})</span>
           <input
-            type="number"
             inputMode="decimal"
             min="0"
-            step="any"
-            value={pace}
             onChange={(e) => updatePace(e.target.value)}
+            step="any"
+            type="number"
+            value={pace}
           />
         </label>
         <label className="field">
           <span>Stride ({imperial ? "in" : "cm"})</span>
           <input
-            type="number"
             inputMode="decimal"
             min="0"
-            step="any"
-            value={stride}
             onChange={(e) => updateStride(e.target.value)}
+            step="any"
+            type="number"
+            value={stride}
           />
         </label>
       </div>
-      <button type="button" className="link" onClick={reset}>
-        <RotateCcw size={14} strokeWidth={2.5} aria-hidden="true" />
+      <button className="link" onClick={reset} type="button">
+        <RotateCcw aria-hidden="true" size={14} strokeWidth={2.5} />
         Reset pace and stride
       </button>
       <label className="field">
         <span>Your OpenRouteService key</span>
         <input
-          type="password"
           autoComplete="off"
-          spellCheck={false}
+          onChange={(e) => onChange({ ...settings, orsKey: e.target.value })}
           placeholder={
             hasBuiltInKey ? "Optional. The built-in key is in use." : "Required"
           }
+          spellCheck={false}
+          type="password"
           value={settings.orsKey}
-          onChange={(e) => onChange({ ...settings, orsKey: e.target.value })}
         />
       </label>
       <p className="hint">
         Your own key gives you your own daily quota. Get a free key at{" "}
         <a
           href="https://openrouteservice.org/dev/#/signup"
-          target="_blank"
           rel="noreferrer"
+          target="_blank"
         >
           openrouteservice.org
         </a>
         . The key stays on this device.
       </p>
-      <button type="button" className="btn-exit" onClick={onClose}>
-        <Check size={20} strokeWidth={3} aria-hidden="true" /> Done
+      <button className="btn-exit" onClick={onClose} type="button">
+        <Check aria-hidden="true" size={20} strokeWidth={3} /> Done
       </button>
       <a
         className="credit"
         href="https://jpmarqu.es"
-        target="_blank"
         rel="noreferrer"
+        target="_blank"
       >
         made with ❤️ by jpmarqu.es
       </a>

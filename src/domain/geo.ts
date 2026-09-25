@@ -71,5 +71,5 @@ export function projectOnSegment(
     lengthSq === 0
       ? 0
       : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lengthSq));
-  return { t, offsetM: Math.hypot(ax + t * dx, ay + t * dy) };
+  return { offsetM: Math.hypot(ax + t * dx, ay + t * dy), t };
 }

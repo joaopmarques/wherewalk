@@ -15,16 +15,21 @@ export function useAnimatedHeight<
   useLayoutEffect(() => {
     const box = boxRef.current;
     const content = contentRef.current;
-    if (!box || !content) return;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: refs are null until React attaches them.
+    if (!(box && content)) {
+      return;
+    }
     let first = true;
 
     const fit = () => {
       const style = getComputedStyle(box);
       const height =
         content.offsetHeight +
-        parseFloat(style.paddingTop) +
-        parseFloat(style.paddingBottom);
-      if (box.style.height === `${height}px`) return;
+        Number.parseFloat(style.paddingTop) +
+        Number.parseFloat(style.paddingBottom);
+      if (box.style.height === `${height}px`) {
+        return;
+      }
       if (first) {
         box.style.height = `${height}px`;
         // Enable the transition only after the first height is on screen.
@@ -38,8 +43,9 @@ export function useAnimatedHeight<
     };
 
     const onTransitionEnd = (e: TransitionEvent) => {
-      if (e.target === box && e.propertyName === "height")
+      if (e.target === box && e.propertyName === "height") {
         box.classList.remove("is-resizing");
+      }
     };
 
     const observer = new ResizeObserver(fit);

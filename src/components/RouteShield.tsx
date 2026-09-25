@@ -17,11 +17,11 @@ export function RouteShield({
   const clipId = useId();
   return (
     <svg
+      aria-hidden="true"
       className="shield"
+      height={size * 1.1}
       viewBox="0 0 40 44"
       width={size}
-      height={size * 1.1}
-      aria-hidden="true"
     >
       <defs>
         <clipPath id={clipId}>
@@ -30,18 +30,18 @@ export function RouteShield({
       </defs>
       <path d={OUTER} fill="#fff" stroke="rgba(0,0,0,0.55)" strokeWidth="1" />
       <g clipPath={`url(#${clipId})`}>
-        <rect width="40" height="44" fill="#1d4f9f" />
-        <rect width="40" height="14" fill="#c62032" />
-        <rect y="14" width="40" height="1.8" fill="#fff" />
+        <rect fill="#1d4f9f" height="44" width="40" />
+        <rect fill="#c62032" height="14" width="40" />
+        <rect fill="#fff" height="1.8" width="40" y="14" />
       </g>
       <text
-        x="20"
-        y="35.5"
-        textAnchor="middle"
-        fontSize="19"
-        fontWeight="800"
         fill="#fff"
         fontFamily="Overpass, sans-serif"
+        fontSize="19"
+        fontWeight="800"
+        textAnchor="middle"
+        x="20"
+        y="35.5"
       >
         {label}
       </text>

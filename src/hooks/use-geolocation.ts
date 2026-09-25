@@ -3,11 +3,11 @@ import { bearingDeg, distanceM } from "../domain/geo";
 import type { LngLat } from "../domain/types";
 
 export interface GeoState {
-  position: LngLat | null;
-  /** Direction of travel in degrees from north, or null before the Walker moves. */
-  heading: number | null;
   accuracyM: number | null;
   error: "denied" | "unavailable" | null;
+  /** Direction of travel in degrees from north, or null before the Walker moves. */
+  heading: number | null;
+  position: LngLat | null;
 }
 
 /** Movement needed before Where2Walk computes a heading from two positions. */
@@ -19,10 +19,10 @@ const HEADING_MIN_MOVE_M = 8;
  */
 export function useGeolocation(): GeoState {
   const [state, setState] = useState<GeoState>({
-    position: null,
-    heading: null,
     accuracyM: null,
     error: null,
+    heading: null,
+    position: null,
   });
   const anchor = useRef<LngLat | null>(null);
   const heading = useRef<number | null>(null);
@@ -50,10 +50,10 @@ export function useGeolocation(): GeoState {
         anchor.current = position;
       }
       setState({
-        position,
-        heading: heading.current,
         accuracyM: coords.accuracy,
         error: null,
+        heading: heading.current,
+        position,
       });
     };
 
@@ -66,11 +66,13 @@ export function useGeolocation(): GeoState {
     };
 
     const start = () => {
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
       watchId = navigator.geolocation.watchPosition(onPosition, onError, {
         enableHighAccuracy: true,
         maximumAge: 5000,
-        timeout: 20000,
+        timeout: 20_000,
       });
     };
 
@@ -81,7 +83,9 @@ export function useGeolocation(): GeoState {
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
     };
   }, []);
 

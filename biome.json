@@ -5,15 +5,48 @@
     "ultracite/biome/react",
     "ultracite/biome/vitest"
   ],
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!dist",
-      "!dev-dist",
-      "!storybook-static",
-      "!pnpm-lock.yaml"
-    ]
-  }
+    "includes": ["!dist", "!dev-dist", "!storybook-static", "!pnpm-lock.yaml"]
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noJsxPropsBind": "off"
+      },
+      "style": {
+        "noIncrementDecrement": {
+          "level": "error",
+          "options": {
+            "allowForLoopAfterthoughts": true
+          }
+        },
+        "useDefaultSwitchClause": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "useAwait": "off",
+            "noBitwiseOperators": "off"
+          },
+          "style": {
+            "noIncrementDecrement": "off"
+          },
+          "complexity": {
+            "noCommaOperator": "off"
+          }
+        }
+      }
+    }
+  ]
 }

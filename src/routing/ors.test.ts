@@ -19,8 +19,8 @@ describe("ORS adapter", () => {
             ],
           },
           properties: {
-            summary: { distance: 1000 },
             extras: { waycategory: { values: [[0, 1, categoryBits]] } },
+            summary: { distance: 1000 },
           },
         };
         return new Response(JSON.stringify({ features: [feature] }), {
@@ -35,8 +35,8 @@ describe("ORS adapter", () => {
     const bodies = captureRequests();
     await createOrsRouter("key").loop([4.48, 51.91], 3000, 7);
     expect(bodies[0].options).toEqual({
-      round_trip: { length: 3000, points: 5, seed: 7 },
       avoid_features: AVOID_FEATURES,
+      round_trip: { length: 3000, points: 5, seed: 7 },
     });
   });
 
