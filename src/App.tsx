@@ -1,41 +1,38 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { type MapRoute, MapView } from "./components/MapView";
-import {
-  FinishedPanel,
-  type OriginStatus,
-  ResultsPanel,
-  ResumePanel,
-  SetupPanel,
-  WalkPanel,
-} from "./components/panels";
-import { SettingsPanel } from "./components/SettingsPanel";
-import { type PlanResult, planRoutes } from "./domain/planner";
+import { type MapRoute, MapView } from "@/components/map/map-view";
+import { FinishedPanel } from "@/components/panels/finished-panel";
+import { ResultsPanel } from "@/components/panels/results-panel";
+import { ResumePanel } from "@/components/panels/resume-panel";
+import { SettingsPanel } from "@/components/panels/settings-panel";
+import { type OriginStatus, SetupPanel } from "@/components/panels/setup-panel";
+import { WalkPanel } from "@/components/panels/walk-panel";
+import { Sign } from "@/components/sign/sign";
+import { type PlanResult, planRoutes } from "@/domain/planner";
 import {
   isFinished,
   matchProgress,
   measureRoute,
   sliceRoute,
-} from "./domain/progress";
-import { targetToMeters } from "./domain/target";
+} from "@/domain/progress";
+import { targetToMeters } from "@/domain/target";
 import type {
   LngLat,
   Route,
   Target,
   TargetKind,
   WalkerSettings,
-} from "./domain/types";
-import { useAnimatedHeight } from "./hooks/use-animated-height";
-import { useGeolocation } from "./hooks/use-geolocation";
-import { useWakeLock } from "./hooks/use-wake-lock";
-import { BUILT_IN_ORS_KEY, createOrsRouter, RouterError } from "./routing/ors";
+} from "@/domain/types";
+import { useGeolocation } from "@/hooks/use-geolocation";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+import { BUILT_IN_ORS_KEY, createOrsRouter, RouterError } from "@/routing/ors";
 import {
   type ActiveWalk,
   loadActiveWalk,
   loadSettings,
   saveActiveWalk,
   saveSettings,
-} from "./storage";
-import { metersPerUnit, resolveUnits } from "./units";
+} from "@/storage";
+import { metersPerUnit, resolveUnits } from "@/units";
 
 /** One color per Candidate. The Selected Route and its button share the color. */
 const CANDIDATE_COLORS = [
@@ -91,10 +88,6 @@ export function App() {
   // A saved Walk from an earlier visit starts with the map fitted to its Route.
   const [fitKey, setFitKey] = useState(() => (loadActiveWalk() ? 1 : 0));
   const [showSettings, setShowSettings] = useState(false);
-  const { boxRef, contentRef } = useAnimatedHeight<
-    HTMLElement,
-    HTMLDivElement
-  >();
 
   const updateSettings = (next: WalkerSettings) => {
     setSettings(next);
@@ -388,17 +381,8 @@ export function App() {
         showAll={phase.name === "results" && phase.showAll}
         walked={walked}
       />
-      <section aria-label="Controls" className="control-box" ref={boxRef}>
-        <div ref={contentRef}>
-          {/* A new key per screen replays the entrance animation when the sign changes. */}
-          <div
-            className="sign-content"
-            key={showSettings ? "settings" : phase.name}
-          >
-            {panel}
-          </div>
-        </div>
-      </section>
+      {/* A new key per screen replays the entrance animation when the sign changes. */}
+      <Sign contentKey={showSettings ? "settings" : phase.name}>{panel}</Sign>
     </div>
   );
 }

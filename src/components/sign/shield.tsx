@@ -7,7 +7,7 @@ const INNER =
   "M5.2 6.8C10 4.6 15 4.6 20 7.3C25 4.6 30 4.6 34.8 6.8C36.5 14.5 36.4 21.5 33 28.8C29.5 35 25.2 37.8 20 40.6C14.8 37.8 10.5 35 7 28.8C3.6 21.5 3.5 14.5 5.2 6.8Z";
 
 /** An Interstate-style route shield. It is the Where2Walk mark. */
-export function RouteShield({
+export function Shield({
   label = "2",
   size = 36,
 }: {

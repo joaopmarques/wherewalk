@@ -1,8 +1,10 @@
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   // Relative base so the static build works on any host path, such as GitHub Pages.
   base: "./",
   // MapLibre is most of the bundle, and it does not split well.

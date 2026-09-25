@@ -12,7 +12,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { LocateFixed } from "lucide-react";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { useEffect, useRef, useState } from "react";
-import type { LngLat } from "../domain/types";
+import type { LngLat } from "@/domain/types";
 
 // MapLibre finds its worker next to its own file, but the bundler moves that file.
 // Vite bundles the worker separately and gives its URL here.
