@@ -71,8 +71,12 @@ const lineFeature = (
 function arrowImage() {
   const size = 48;
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("No 2D canvas for the route arrow.");
+  }
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   // A dark outline keeps the white chevron visible on both the white casing and the route color.
@@ -106,10 +110,13 @@ export function MapView(props: Props) {
 
   // Create the map once.
   useEffect(() => {
+    if (!container.current) {
+      return;
+    }
     const m = new MapLibreMap({
       attributionControl: false,
       center: [0, 20],
-      container: container.current!,
+      container: container.current,
       style: STYLE_URL,
       zoom: 1.5,
     });
@@ -221,19 +228,21 @@ export function MapView(props: Props) {
         "size-7 -rotate-45 rounded-[50%_50%_50%_0] border-3 border-card-foreground",
         "bg-(image:--gradient-card-diagonal) shadow-marker"
       );
-      originMarker.current = new Marker({ anchor: "bottom", element: el })
+      const marker = new Marker({ anchor: "bottom", element: el })
         .setLngLat(props.origin)
         .addTo(m);
-      originMarker.current.on("dragend", () => {
-        const { lng, lat } = originMarker.current!.getLngLat();
+      marker.on("dragend", () => {
+        const { lng, lat } = marker.getLngLat();
         callbacks.current.onOriginChange([lng, lat]);
       });
+      originMarker.current = marker;
     }
     originMarker.current.setLngLat(props.origin);
     originMarker.current.setDraggable(props.originDraggable);
     originMarker.current
       .getElement()
       .classList.toggle("is-draggable", props.originDraggable);
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: the ref changes after the first run.
     if (!centeredOnOrigin.current) {
       centeredOnOrigin.current = true;
       m.jumpTo({ center: props.origin, zoom: 15 });
@@ -283,6 +292,7 @@ export function MapView(props: Props) {
   }, [loaded, props.walked]);
 
   // Fit the map to the routes when a new plan arrives.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new fitKey fits the map, not every route change.
   useEffect(() => {
     const m = map.current;
     if (!m || props.fitKey === 0 || props.routes.length === 0) {
@@ -324,10 +334,12 @@ export function MapView(props: Props) {
         .addTo(m);
     }
     positionMarker.current.setLngLat(props.position);
-    const arrow = positionArrow.current!;
-    arrow.style.display = props.heading === null ? "none" : "block";
-    if (props.heading !== null) {
-      arrow.style.transform = `rotate(${props.heading}deg)`;
+    const arrow = positionArrow.current;
+    if (arrow) {
+      arrow.style.display = props.heading === null ? "none" : "block";
+      if (props.heading !== null) {
+        arrow.style.transform = `rotate(${props.heading}deg)`;
+      }
     }
   }, [props.position, props.heading]);
 
@@ -353,7 +365,7 @@ export function MapView(props: Props) {
   return (
     <>
       <div className="absolute inset-0" ref={container} />
-      {props.follow && userMoved && (
+      {props.follow && userMoved ? (
         <button
           // A small guide sign.
           className={cn(
@@ -367,7 +379,7 @@ export function MapView(props: Props) {
           <LocateFixed aria-hidden="true" size={18} strokeWidth={2.5} />
           Recenter
         </button>
-      )}
+      ) : null}
     </>
   );
 }

@@ -58,6 +58,21 @@ const resultRoutes = (result: PlanResult): Route[] =>
 
 const newSeed = () => Math.floor(Math.random() * 1000);
 
+function originStatusOf(
+  isPin: boolean,
+  hasOrigin: boolean,
+  hasPosition: boolean,
+  hasError: boolean
+): OriginStatus {
+  if (isPin) {
+    return hasPosition ? "pin" : "pin-no-location";
+  }
+  if (hasOrigin) {
+    return "gps";
+  }
+  return hasError ? "no-location" : "locating";
+}
+
 export function App() {
   const geo = useGeolocation();
   // One color per Candidate. The Selected Route and its button share the color.
@@ -166,16 +181,20 @@ export function App() {
     phase.name === "resume"
       ? phase.walk
       : null;
+  // Progress updates make a new walk object, but the Route and color stay the same.
+  const walkRoute = walk?.route ?? null;
+  const walkColor = walk?.color ?? null;
+  const walkProgressM = walk?.progressM ?? 0;
   const measured = useMemo(
-    () => (walk ? measureRoute(walk.route.coordinates) : null),
-    [walk?.route]
+    () => (walkRoute ? measureRoute(walkRoute.coordinates) : null),
+    [walkRoute]
   );
   const walked = useMemo(
     () =>
-      measured && walk && phase.name !== "resume"
-        ? sliceRoute(measured, walk.progressM)
+      measured && phase.name !== "resume"
+        ? sliceRoute(measured, walkProgressM)
         : [],
-    [measured, walk?.progressM, phase.name]
+    [measured, walkProgressM, phase.name]
   );
 
   const startWalk = (route: Route, color: string, walkTarget: Target) => {
@@ -219,6 +238,7 @@ export function App() {
   useWakeLock(phase.name === "walking");
 
   const endWalk = () => {
+    // biome-ignore lint/suspicious/noAlert: a native confirm is the simplest safe stop for a Walk.
     if (!window.confirm("End this walk?")) {
       return;
     }
@@ -241,28 +261,24 @@ export function App() {
         coordinates: r.coordinates,
       }));
     }
-    if (walk) {
+    if (walkRoute && walkColor) {
       return [
         {
-          arrows: walk.route.shape === "loop",
-          color: walk.color,
-          coordinates: walk.route.coordinates,
+          arrows: walkRoute.shape === "loop",
+          color: walkColor,
+          coordinates: walkRoute.coordinates,
         },
       ];
     }
     return [];
-    // Progress updates make a new walk object, but the Route and color stay the same.
-  }, [planned, walk?.route, walk?.color]);
+  }, [planned, walkRoute, walkColor, candidateColors]);
 
-  const originStatus: OriginStatus = originIsPin
-    ? geo.position
-      ? "pin"
-      : "pin-no-location"
-    : origin
-      ? "gps"
-      : geo.error
-        ? "no-location"
-        : "locating";
+  const originStatus = originStatusOf(
+    originIsPin,
+    origin !== null,
+    geo.position !== null,
+    geo.error !== null
+  );
 
   const setupActive = phase.name === "setup" || phase.name === "results";
 

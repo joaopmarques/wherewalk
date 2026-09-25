@@ -1,0 +1,12 @@
+// Raw color values live only in src/ui/tokens.css. Code uses tokens: a class such as
+// bg-card, a CSS variable such as var(--route-1), or readToken("route-1") for MapLibre.
+language js
+
+or {
+  JsStringLiteralExpression() as $s,
+  JsxString() as $s,
+  JsTemplateChunkElement() as $s
+} where {
+  $s <: r"(?s).*(?:#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(|\boklab\().*",
+  register_diagnostic(span=$s, message="Raw color. Add a token to src/ui/tokens.css and use it. See .agents/docs/design-system.md.")
+}

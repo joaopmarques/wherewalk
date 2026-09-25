@@ -104,7 +104,7 @@ export function SetupPanel(p: SetupPanelProps) {
         {ORIGIN_TEXT[p.originStatus]}
       </Hint>
 
-      {p.error && <Plaque variant="error">{p.error}</Plaque>}
+      {p.error ? <Plaque variant="error">{p.error}</Plaque> : null}
 
       <SignButton disabled={!canPlan} type="submit" variant="exit">
         {p.planning ? (

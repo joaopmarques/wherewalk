@@ -10,6 +10,7 @@ function FieldLabel({
   label: string;
 }) {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control comes in as children.
     <label className="flex flex-col gap-1.5">
       <span className="font-bold text-2xs uppercase tracking-wider">
         {label}

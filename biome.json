@@ -38,10 +38,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "**/*.test.ts",
-        "**/*.test.tsx"
-      ],
+      "includes": ["**/*.test.ts", "**/*.test.tsx"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -56,6 +53,138 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/src/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/*",
+                      "@/components/**",
+                      "@/domain/*",
+                      "@/domain/**",
+                      "@/hooks/*",
+                      "@/hooks/**",
+                      "@/routing/*",
+                      "@/storage",
+                      "@/units"
+                    ],
+                    "message": "src/ui is generic. It knows nothing about the app. See .agents/docs/design-system.md."
+                  },
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Import across folders with @/ so the boundary rules can see it."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/src/components/sign/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/panels/*", "@/components/map/*"],
+                    "message": "Sign parts do not use Panels or the map. See .agents/docs/design-system.md."
+                  },
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Import across folders with @/ so the boundary rules can see it."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/src/components/panels/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/ui/*", "@/ui/**"],
+                    "message": "Panels use sign parts, never src/ui directly. Add or extend a part in src/components/sign. See docs/adr/0003-strict-ui-boundaries.md."
+                  },
+                  {
+                    "group": ["@/components/map/*"],
+                    "message": "Panels do not use the map. App wires them together."
+                  },
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Import across folders with @/ so the boundary rules can see it."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/src/domain/**", "**/src/routing/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "react",
+                      "react-dom",
+                      "@/components/*",
+                      "@/components/**",
+                      "@/ui/*",
+                      "@/ui/**",
+                      "@/hooks/*",
+                      "@/hooks/**"
+                    ],
+                    "message": "The domain is plain TypeScript. It has no UI. See .agents/docs/architecture.md."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "plugins": [
+    {
+      "path": "./biome-plugins/no-raw-color.grit",
+      "includes": [
+        "**/src/**/*.ts",
+        "**/src/**/*.tsx",
+        "**/.storybook/**/*.tsx"
+      ]
+    },
+    {
+      "path": "./biome-plugins/no-class-in-panels.grit",
+      "includes": [
+        "**/src/components/panels/*.tsx",
+        "!**/src/components/panels/*.stories.tsx"
+      ]
     }
   ]
 }

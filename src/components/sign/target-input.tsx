@@ -13,6 +13,7 @@ export function TargetInput({
   value: string;
 }) {
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the Input inside is the control.
     <label className="flex items-baseline gap-2.5 border-card-foreground/50 border-b-3 pb-0.5 transition-colors duration-150 ease-[ease] focus-within:border-card-foreground motion-reduce:transition-none">
       <Input
         aria-label={label}
