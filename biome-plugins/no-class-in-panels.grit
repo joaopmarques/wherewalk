@@ -1,0 +1,7 @@
+// Panels only compose sign parts. Styling lives in src/components/sign and src/ui.
+language js
+
+JsxAttribute() as $attr where {
+  $attr <: r"(?s)^(?:className|style)\b.*",
+  register_diagnostic(span=$attr, message="A Panel has no className or style. Use or add a part in src/components/sign. See .agents/docs/design-system.md.")
+}

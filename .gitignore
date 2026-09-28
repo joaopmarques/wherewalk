@@ -7,3 +7,6 @@ dev-dist
 .vercel
 .env*
 !.env.example
+storybook-static
+.vitest-attachments
+.pnpm-store

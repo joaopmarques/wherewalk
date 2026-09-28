@@ -1,0 +1,287 @@
+/*
+ * Design tokens in three tiers.
+ * 1. Primitives: raw values. Only tier 2 reads them.
+ * 2. Semantic roles, with shadcn names. Components read only these.
+ * 3. Components: Tailwind utilities made from tier 2, in the @theme block.
+ *
+ * Raw color values live only in this file. A redesign changes tiers 1 and 2.
+ * The look is a North American guide sign: reflective green, a yellow exit panel, white ink.
+ */
+
+/* ─── Tier 1: primitives ─────────────────────────────────────────────────── */
+
+:root {
+  --white: #ffffff;
+  --black: #000000;
+  --sand-100: #f2efe9;
+  --mint-50: #f0f4f1;
+  --mint-100: #eaf1ec;
+
+  --green-400: #23904f;
+  --green-500: #17773f;
+  --green-600: #106233;
+  --green-900: #0f3d22;
+  --green-950: #032812;
+
+  --yellow-300: #ffd84a;
+  --yellow-400: #ffc414;
+  --yellow-500: #f5bd0c;
+  --yellow-600: #f2b000;
+  --yellow-800: #b57f00;
+  --yellow-950: #141000;
+
+  --red-500: #e53935;
+  --red-600: #c62032;
+  --red-700: #b71c1c;
+
+  --blue-500: #1a73e8;
+  --blue-600: #2563eb;
+  --navy-700: #1d4f9f;
+  --rose-600: #e11d48;
+  --amber-600: #d97706;
+  --violet-600: #7c3aed;
+  --teal-600: #0d9488;
+  --slate-400: #9aa3ad;
+  --gray-500: #757575;
+}
+
+/* ─── Tier 2: semantic roles ─────────────────────────────────────────────── */
+
+:root {
+  /* The page behind the map. */
+  --background: var(--sand-100);
+  --foreground: var(--green-900);
+
+  /* The Sign. Three stops make its gradient. */
+  --card-top: var(--green-400);
+  --card: var(--green-500);
+  --card-bottom: var(--green-600);
+  --card-foreground: var(--white);
+  --card-edge: color-mix(in srgb, var(--green-950) 90%, transparent);
+
+  /* The Exit Button, the main action. The lip is its bottom edge. */
+  --primary-top: var(--yellow-300);
+  --primary: var(--yellow-400);
+  --primary-bottom: var(--yellow-600);
+  --primary-foreground: var(--yellow-950);
+  --primary-lip: var(--yellow-800);
+
+  /* White parts on the Sign: the segmented pill and the Candidate Chips. */
+  --secondary-top: var(--white);
+  --secondary: var(--mint-100);
+  --secondary-foreground: var(--green-900);
+
+  /* Settings inputs. The placeholder keeps the browser's default gray. */
+  --input-top: var(--white);
+  --input: var(--mint-50);
+  --placeholder: var(--gray-500);
+
+  --warning-top: var(--yellow-300);
+  --warning-bottom: var(--yellow-500);
+  --warning-foreground: var(--yellow-950);
+
+  --destructive-top: var(--red-500);
+  --destructive-bottom: var(--red-700);
+  --destructive-foreground: var(--white);
+
+  --ring: var(--white);
+  /* Tints and wells on the Sign, used with an opacity such as bg-shade/24. */
+  --shade: var(--black);
+
+  /* One color per Candidate. MapLibre reads these values at runtime. */
+  --route-1: var(--blue-600);
+  --route-2: var(--rose-600);
+  --route-3: var(--amber-600);
+  --route-4: var(--violet-600);
+  --route-5: var(--teal-600);
+  --route-walked: var(--slate-400);
+  --route-casing: var(--white);
+  --route-shadow: rgb(0 0 0 / 0.5);
+
+  /* The Walker's position on the map. */
+  --position: var(--blue-500);
+
+  /* The Shield, the Where2Walk mark. */
+  --shield-blue: var(--navy-700);
+  --shield-red: var(--red-600);
+
+  /* Gradients made from the stops above. */
+  --gradient-sign:
+    radial-gradient(
+      130% 70% at 50% -12%,
+      rgb(255 255 255 / 0.3),
+      rgb(255 255 255 / 0.06) 45%,
+      rgb(255 255 255 / 0) 70%
+    ),
+    radial-gradient(90% 60% at 50% 115%, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0) 70%),
+    linear-gradient(
+      180deg,
+      var(--card-top) 0%,
+      var(--card) 55%,
+      var(--card-bottom) 100%
+    );
+  --gradient-card: linear-gradient(180deg, var(--card-top), var(--card-bottom));
+  --gradient-card-diagonal: linear-gradient(
+    135deg,
+    var(--card-top),
+    var(--card-bottom)
+  );
+  --gradient-primary: linear-gradient(
+    180deg,
+    var(--primary-top) 0%,
+    var(--primary) 60%,
+    var(--primary-bottom) 100%
+  );
+  --gradient-secondary: linear-gradient(
+    180deg,
+    var(--secondary-top),
+    var(--secondary)
+  );
+  --gradient-input: linear-gradient(180deg, var(--input-top), var(--input));
+  --gradient-warning: linear-gradient(
+    180deg,
+    var(--warning-top),
+    var(--warning-bottom)
+  );
+  --gradient-destructive: linear-gradient(
+    180deg,
+    var(--destructive-top),
+    var(--destructive-bottom)
+  );
+  /* A light sheen over a solid Candidate color. */
+  --gradient-sheen: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.35),
+    rgb(255 255 255 / 0)
+  );
+
+  --scrollbar: color-mix(in srgb, var(--white) 40%, transparent);
+}
+
+/* ─── Tier 3: Tailwind utilities ─────────────────────────────────────────── */
+
+@theme inline {
+  /* Only these colors exist. Tailwind's default palette is off. */
+  --color-*: initial;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-top: var(--card-top);
+  --color-card: var(--card);
+  --color-card-bottom: var(--card-bottom);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-edge: var(--card-edge);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-lip: var(--primary-lip);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-placeholder: var(--placeholder);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
+  --color-shade: var(--shade);
+  --color-position: var(--position);
+  --color-shield-blue: var(--shield-blue);
+  --color-shield-red: var(--shield-red);
+  --color-route-casing: var(--route-casing);
+  --color-scrollbar: var(--scrollbar);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans:
+    "Overpass", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  /* Sizes on the Sign, from the credit line (2xs) to the Target input (6xl). */
+  --text-*: initial;
+  --text-2xs: 12px;
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-md: 15px;
+  --text-base: 16px;
+  --text-lg: 17px;
+  --text-xl: 22px;
+  --text-2xl: 24px;
+  --text-3xl: 27px;
+  --text-4xl: 44px;
+  --text-5xl: 46px;
+  --text-6xl: 54px;
+  --tracking-*: initial;
+  --tracking-tighter: -0.02em;
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.08em;
+  --radius-*: initial;
+  --radius-sm: 4px;
+  --radius-md: 9px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+  --breakpoint-*: initial;
+  /* The Sign moves to the top left at this width. */
+  --breakpoint-md: 720px;
+
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  /* For things that move on screen after a tap: a quick start, so it answers at once, and a long settle. */
+  --ease-move: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-sign:
+    0 0 0 1px var(--card-edge), 0 18px 36px -10px rgb(0 0 0 / 0.55), 0 4px 10px rgb(
+      0 0 0 / 0.28
+    ),
+    inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -2px 0 rgb(0 0 0 / 0.25);
+  --shadow-exit:
+    0 3px 0 var(--primary-lip), 0 7px 14px -4px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --shadow-exit-pressed:
+    0 1px 0 var(--primary-lip), 0 3px 8px -4px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  --shadow-exit-focus: 0 0 0 3px var(--ring), 0 0 0 6px rgb(0 0 0 / 0.35);
+  --shadow-well:
+    inset 0 2px 4px rgb(0 0 0 / 0.3), inset 0 0 0 1px rgb(0 0 0 / 0.15),
+    0 1px 0 rgb(255 255 255 / 0.18);
+  --shadow-pill: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 -1px 0 rgb(0 0 0 / 0.08);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-chip-active:
+    0 0 0 2px var(--ring), 0 0 0 5px var(--candidate),
+    0 4px 10px rgb(0 0 0 / 0.35);
+  --shadow-dot: inset 0 0 0 1.5px rgb(0 0 0 / 0.15);
+  --shadow-swatch:
+    0 0 0 2.5px var(--card-foreground), 0 1px 3px 2px rgb(0 0 0 / 0.35);
+  --shadow-track:
+    inset 0 1px 3px rgb(0 0 0 / 0.4), 0 0 0 2px rgb(255 255 255 / 0.85);
+  --shadow-thumb: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-progress:
+    inset 0 1px 3px rgb(0 0 0 / 0.4), 0 0 0 2px rgb(255 255 255 / 0.9);
+  --shadow-field:
+    inset 0 1px 2px rgb(0 0 0 / 0.25), 0 1px 0 rgb(255 255 255 / 0.2);
+  --shadow-marker: 0 2px 6px rgb(0 0 0 / 0.35);
+  --shadow-position:
+    0 0 0 6px color-mix(in srgb, var(--position) 20%, transparent),
+    0 1px 4px rgb(0 0 0 / 0.3);
+  --shadow-recenter:
+    0 0 0 1px var(--card-edge), 0 6px 14px -4px rgb(0 0 0 / 0.5);
+
+  --text-shadow-sign: 0 1px 1px rgb(0 0 0 / 0.28);
+  --text-shadow-recenter: 0 1px 1px rgb(0 0 0 / 0.3);
+  --text-shadow-exit: 0 1px 0 rgb(255 255 255 / 0.35);
+  --text-shadow-target: 0 2px 2px rgb(0 0 0 / 0.3);
+
+  --drop-shadow-icon: 0 1px 1px rgb(0 0 0 / 0.3);
+  --drop-shadow-shield: 0 1px 1.5px rgb(0 0 0 / 0.45);
+
+  --animate-sign-in: sign-in 220ms var(--ease-out-quart);
+  --animate-spin: spin 700ms linear infinite;
+
+  @keyframes sign-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

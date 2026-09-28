@@ -5,6 +5,7 @@ Where2Walk plans a walk that starts and ends where you are. You give a Target as
 Live at <https://where2walk.jpmarqu.es>.
 
 The domain words (Origin, Route, Loop, Target, Candidate, Progress) are defined in [CONTEXT.md](CONTEXT.md).
+Working with an AI agent? Start at [AGENTS.md](AGENTS.md).
 
 ## How it works
 
@@ -18,8 +19,8 @@ The domain words (Origin, Route, Loop, Target, Candidate, Progress) are defined 
 1. Get a free ORS key at <https://openrouteservice.org/dev/#/signup>.
 2. Copy `.env.example` to `.env.local`.
 3. Paste the key after `VITE_ORS_KEY=`.
-4. Run `npm install`.
-5. Run `npm run dev`, then open <http://localhost:5173>.
+4. Use Node 26 (`nvm use`) and run `pnpm install`.
+5. Run `pnpm dev`, then open <http://localhost:5173>.
 
 The key in `.env.local` becomes the built-in shared key. Each Walker can also paste their own key in the app settings. Their own key overrides the built-in key.
 
@@ -27,10 +28,21 @@ The key in `.env.local` becomes the built-in shared key. Each Walker can also pa
 
 | Command | Action |
 |---|---|
-| `npm run dev` | Start the dev server. |
-| `npm test` | Run the domain tests. |
-| `npm run build` | Type-check and build the static site into `dist/`. |
-| `npm run preview` | Serve the built site. |
+| `pnpm dev` | Start the dev server. |
+| `pnpm check` / `pnpm fix` | Lint and format with Ultracite (Biome). |
+| `pnpm typecheck` | Type-check. |
+| `pnpm test` | Run the unit tests, and every story as a browser test with axe. |
+| `pnpm test:visual` | Compare every story with its screenshot, in Docker. |
+| `pnpm storybook` | Open Storybook at <http://localhost:6006>. |
+| `pnpm build` | Type-check and build the static site into `dist/`. |
+| `pnpm preview` | Serve the built site. |
+
+`pnpm test` needs Chromium once: `pnpm exec playwright install chromium`.
+`pnpm test:visual` needs Docker. See [testing](.agents/docs/testing.md).
+
+## Design system
+
+Tailwind v4, with tokens in `src/ui/tokens.css`, and shadcn primitives on Base UI in `src/ui/`. See [design-system](.agents/docs/design-system.md), or the Foundations page in Storybook.
 
 ## Test on a phone
 
@@ -40,7 +52,7 @@ Browsers give GPS positions only on `https://` pages or on `localhost`. A phone 
 
 The app runs on Vercel as the project `wherewalk`, in the personal `jpmarques` scope. The domain `where2walk.jpmarqu.es` has a CNAME record at GoDaddy that points to Vercel.
 
-To deploy a new version to production, run `npx vercel deploy --prod --scope jpmarques`.
+With the Vercel Git integration on, a merge to `main` deploys production. To deploy by hand, run `npx vercel deploy --prod --scope jpmarques`.
 
 `VITE_ORS_KEY` is set in the Vercel project for Production and Preview. `npm run build` makes a plain static site in `dist/`, so any other static host also works.
 
