@@ -3,6 +3,7 @@
 - Host: Vercel, project `wherewalk`, scope `jpmarques`.
 - Domain: `where2walk.jpmarqu.es`. A CNAME at GoDaddy points to Vercel.
 - `VITE_ORS_KEY` is set in Vercel for Production and Preview.
+- Vercel runs Node 24.x at most. `.nvmrc` pins 24 so CI builds the same way. `engines` is `>=24`.
 - `pnpm build` makes a plain static site in `dist/`. Any static host works.
 
 ## Flow

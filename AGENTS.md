@@ -11,7 +11,7 @@ This covers comments, docs, commits, PR text, and UI copy. Details: [writing](.a
 ## What this is
 
 A client-only PWA. It plans a walk that starts and ends where the Walker is.
-React 19, Vite 8, TypeScript 7, Tailwind v4, Base UI, MapLibre. pnpm, Node 26.
+React 19, Vite 8, TypeScript 7, Tailwind v4, Base UI, MapLibre. pnpm, Node 24 (what Vercel runs).
 Domain words (Walker, Route, Loop, Target, Candidate, Progress) are in [CONTEXT.md](CONTEXT.md). Use them.
 
 ## Commands

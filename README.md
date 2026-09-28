@@ -19,7 +19,7 @@ Working with an AI agent? Start at [AGENTS.md](AGENTS.md).
 1. Get a free ORS key at <https://openrouteservice.org/dev/#/signup>.
 2. Copy `.env.example` to `.env.local`.
 3. Paste the key after `VITE_ORS_KEY=`.
-4. Use Node 26 (`nvm use`) and run `pnpm install`.
+4. Use Node 24 or later (`nvm use` picks 24, like Vercel) and run `pnpm install`.
 5. Run `pnpm dev`, then open <http://localhost:5173>.
 
 The key in `.env.local` becomes the built-in shared key. Each Walker can also paste their own key in the app settings. Their own key overrides the built-in key.
